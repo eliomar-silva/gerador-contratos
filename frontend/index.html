@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Contratos Automatizado</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #27ae60;
+            --warning: #f39c12;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: var(--dark);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.8rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        header p {
+            font-size: 1.2rem;
+            color: #555;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+
+        @media (min-width: 992px) {
+            .app-container {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .card-header i {
+            font-size: 1.5rem;
+        }
+
+        .card-body {
+            padding: 30px;
+        }
+
+        .upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background-color: #f9f9f9;
+            position: relative;
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: var(--secondary);
+            background-color: rgba(52, 152, 219, 0.05);
+        }
+
+        .upload-area i {
+            font-size: 3.5rem;
+            color: var(--secondary);
+            margin-bottom: 15px;
+        }
+
+        .upload-area h3 {
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .file-input {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 30px;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-generate {
+            background: var(--success);
+            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+            width: 100%;
+            padding: 15px;
+            font-size: 1.2rem;
+            margin-top: 30px;
+        }
+
+        .btn-generate:hover {
+            background: #219653;
+            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+        }
+
+        .btn-download {
+            background: var(--accent);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .btn-download:hover {
+            background: #c0392b;
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+        }
+
+        .file-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f1f8ff;
+            border-radius: 8px;
+            border-left: 4px solid var(--secondary);
+            display: none;
+        }
+
+        .file-info h4 {
+            margin-bottom: 10px;
+            color: var(--primary);
+        }
+
+        .contract-preview {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 25px;
+            height: 500px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .contract-preview h2 {
+            text-align: center;
+            margin-bottom: 25px;
+            color: var(--primary);
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .contract-section {
+            margin-bottom: 25px;
+        }
+
+        .contract-section h3 {
+            margin-bottom: 10px;
+            color: var(--secondary);
+            font-size: 16px;
+        }
+
+        .contract-field {
+            margin-bottom: 8px;
+            padding: 8px;
+            background: #f0f8ff;
+            border-radius: 5px;
+        }
+
+        .contract-field strong {
+            color: var(--primary);
+        }
+
+        .manual-fields {
+            margin-top: 30px;
+            padding: 20px;
+            background: #fff8e1;
+            border-radius: 10px;
+            border-left: 4px solid var(--warning);
+        }
+
+        .manual-fields h3 {
+            margin-bottom: 15px;
+            color: var(--warning);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--secondary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            background: var(--success);
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateX(200%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.error {
+            background: var(--accent);
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 50px;
+            color: #777;
+            border-top: 1px solid #eee;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            gap: 10px;
+        }
+
+        .step {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #777;
+        }
+
+        .step.active {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .step.completed {
+            background: var(--success);
+            color: white;
+        }
+
+        .vendedor-option {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #e8f4fc;
+            border-radius: 10px;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+            margin: 0 10px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--success);
+        }
+
+        input:focus+.slider {
+            box-shadow: 0 0 1px var(--success);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .vendedor-base {
+            background-color: #e8f5e9;
+        }
+
+        .vendedor-nota {
+            background-color: #ffecb3;
+        }
+
+        .veiculo-info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e8f4f8;
+            border-radius: 8px;
+            border-left: 4px solid #2c9faf;
+        }
+
+        .veiculo-info h3 {
+            margin-bottom: 10px;
+            color: #2c9faf;
+        }
+
+        .veiculo-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .veiculo-item {
+            background: #d1ecf1;
+            padding: 8px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .veiculo-item strong {
+            display: block;
+            font-size: 12px;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-file-contract"></i> Gerador de Contratos Automatizado</h1>
+            <p>Transforme notas fiscais em contratos profissionais com apenas alguns cliques</p>
+        </header>
+
+        <div class="step-indicator">
+            <div class="step completed">1</div>
+            <div class="step active">2</div>
+            <div class="step">3</div>
+        </div>
+
+        <div class="app-container">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-file-upload"></i>
+                    <h2>Carregar Nota Fiscal (XML)</h2>
+                </div>
+                <div class="card-body">
+                    <div class="upload-area" id="xmlUploadArea">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h3>Arraste e solte seu XML aqui</h3>
+                        <p>ou clique para selecionar o arquivo</p>
+                        <input type="file" id="xmlFileInput" class="file-input" accept=".xml">
+                    </div>
+
+                    <div class="file-info" id="xmlFileInfo">
+                        <h4>Arquivo carregado:</h4>
+                        <p id="xmlFileName"></p>
+                        <p id="xmlFileSize"></p>
+                    </div>
+
+                    <div class="veiculo-info" id="veiculoInfo" style="display: none;">
+                        <h3><i class="fas fa-car"></i> Dados do Veículo Extraídos</h3>
+                        <div class="veiculo-details" id="veiculoDetails"></div>
+                    </div>
+
+                    <div class="vendedor-option">
+                        <div class="option-label">
+                            <span>Usar vendedor base</span>
+                            <label class="switch">
+                                <input type="checkbox" id="vendedorToggle">
+                                <span class="slider"></span>
+                            </label>
+                            <span>Usar vendedor da nota</span>
+                        </div>
+                        <p class="contract-field" id="vendedorStatus">Atualmente: Vendedor base será utilizado</p>
+                    </div>
+
+                    <div class="manual-fields">
+                        <h3><i class="fas fa-edit"></i> Dados Complementares</h3>
+                        <div class="form-group">
+                            <label for="quilometragem">Quilometragem (KM)</label>
+                            <input type="text" id="quilometragem" placeholder="Ex: 45.000">
+                        </div>
+                        <div class="form-group">
+                            <label for="desconto">Valor do Desconto (R$)</label>
+                            <input type="text" id="desconto" placeholder="Ex: 500,00" value="0,00">
+                        </div>
+                        <div class="form-group">
+                            <label for="formaPagamentoInput">Forma de Pagamento</label>
+                            <input type="text" id="formaPagamentoInput" placeholder="Ex: À VISTA, PARCELADO, PIX, etc.">
+                        </div>
+                        <div class="form-group">
+                            <label for="ipva">Situação do IPVA</label>
+                            <select id="ipva">
+                                <option value="IPVA PAGO">IPVA PAGO</option>
+                                <option value="DOCUMENTAÇÃO PAGA">Documentação Paga</option>
+                                <option value="Manual">Manual</option>
+                            </select>
+                            <input type="text" id="ipvaManualInput" style="display: none; margin-top: 10px;"
+                                placeholder="Digite o status do IPVA">
+                        </div>
+                        <div class="form-group">
+                            <label for="multasInput">Multas Pendentes</label>
+                            <input type="text" id="multasInput" value="SEM MULTAS"
+                                placeholder="Informe as multas pendentes">
+                        </div>
+                    </div>
+
+                    <button class="btn btn-generate" id="generateBtn">
+                        <i class="fas fa-cogs"></i> Gerar Contrato
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-file-alt"></i>
+                    <h2>Prévia do Contrato</h2>
+                </div>
+                <div class="card-body">
+                    <div class="contract-preview" id="contractPreview">
+                        <p>Carregue um arquivo XML para visualizar o contrato gerado automaticamente.</p>
+                    </div>
+
+                    <div class="file-info" id="contractInfo" style="display: none;">
+                        <h4>Contrato gerado com sucesso!</h4>
+                        <p>Revise o documento e faça o download.</p>
+                        <button class="btn btn-download" id="downloadBtn">
+                            <i class="fas fa-download"></i> Baixar Contrato (DOCX)
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="notification" class="notification">
+            Arquivo XML carregado com sucesso!
+        </div>
+    </div>
+
+    <footer>
+        <p>Sistema de Geração de Contratos Automatizado &copy; 2023</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Elementos DOM
+            const xmlUploadArea = document.getElementById('xmlUploadArea');
+            const xmlFileInput = document.getElementById('xmlFileInput');
+            const xmlFileInfo = document.getElementById('xmlFileInfo');
+            const xmlFileName = document.getElementById('xmlFileName');
+            const xmlFileSize = document.getElementById('xmlFileSize');
+            const generateBtn = document.getElementById('generateBtn');
+            const contractPreview = document.getElementById('contractPreview');
+            const contractInfo = document.getElementById('contractInfo');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const notification = document.getElementById('notification');
+            const vendedorToggle = document.getElementById('vendedorToggle');
+            const vendedorStatus = document.getElementById('vendedorStatus');
+            const veiculoInfo = document.getElementById('veiculoInfo');
+            const veiculoDetails = document.getElementById('veiculoDetails');
+            const ipvaManualInput = document.getElementById('ipvaManualInput');
+            const multasInput = document.getElementById('multasInput');
+            const formaPagamentoInput = document.getElementById('formaPagamentoInput');
+
+            // Estado da aplicação
+            let xmlData = null;
+            let vendedorMode = 'base'; // 'base' ou 'nota'
+            let veiculoData = {};
+            const anoAtual = new Date().getFullYear();
+
+            // Base de dados de marcas de motos (em maiúsculas)
+            const MARCAS_MOTOS = [
+                "YAMAHA", "HONDA", "KAWASAKI", "SUZUKI", "BMW",
+                "DUCATI", "HARLEY DAVIDSON", "ROYAL ENFIELD", "KTM",
+                "TRIUMPH", "APRILIA", "MOTOGUZZI", "BENELLI", "INDIAN",
+                "DAFRA", "SHINERAY", "HAOJUE", "MV AGUSTA",
+                "VESPA", "PIAGGIO", "KYMCO", "SYM", "BAJAJ", "TVS"
+            ];
+
+            // Função para extrair marca e modelo
+            function extrairMarcaModelo(descricao) {
+                // Encontrar a posição do padrão de ano (ex: "(2022/2023)")
+                const regexAno = /\(\d{4}\/\d{4}\)/;
+                const matchAno = descricao.match(regexAno);
+
+                let textoPreAno = descricao;
+                if (matchAno) {
+                    const indexAno = descricao.indexOf(matchAno[0]);
+                    textoPreAno = descricao.substring(0, indexAno).trim();
+                }
+
+                // Converter para maiúsculas para comparação case-insensitive
+                const textoUpper = textoPreAno.toUpperCase();
+                let marcaEncontrada = "";
+                let modelo = textoPreAno;
+
+                // Procurar a marca mais longa possível (até 3 palavras)
+                for (let qtdPalavras = 3; qtdPalavras >= 1; qtdPalavras--) {
+                    for (let i = 0; i <= textoUpper.split(' ').length - qtdPalavras; i++) {
+                        const palavrasTeste = textoUpper.split(' ').slice(i, i + qtdPalavras).join(' ');
+
+                        if (MARCAS_MOTOS.includes(palavrasTeste)) {
+                            marcaEncontrada = palavrasTeste;
+
+                            // Extrair o modelo removendo a marca
+                            const palavras = textoPreAno.split(' ');
+                            modelo = palavras.slice(i + qtdPalavras).join(' ').trim();
+
+                            return {
+                                marca: marcaEncontrada,
+                                modelo: modelo
+                            };
+                        }
+                    }
+                }
+
+                // Se não encontrou marca, tentar dividir na primeira palavra
+                const primeiraPalavra = textoPreAno.split(' ')[0].toUpperCase();
+                if (MARCAS_MOTOS.includes(primeiraPalavra)) {
+                    marcaEncontrada = primeiraPalavra;
+                    modelo = textoPreAno.split(' ').slice(1).join(' ').trim();
+                }
+
+                return {
+                    marca: marcaEncontrada,
+                    modelo: modelo || textoPreAno
+                };
+            }
+
+            // Eventos de upload
+            xmlUploadArea.addEventListener('click', () => {
+                xmlFileInput.click();
+            });
+
+            xmlFileInput.addEventListener('change', handleFileUpload);
+
+            // Alternar entre vendedor base e vendedor da nota
+            vendedorToggle.addEventListener('change', function () {
+                vendedorMode = this.checked ? 'nota' : 'base';
+                vendedorStatus.textContent = `Atualmente: ${this.checked ? 'Vendedor da nota será utilizado' : 'Vendedor base será utilizado'}`;
+                vendedorStatus.parentElement.className = this.checked ? 'vendedor-option vendedor-nota' : 'vendedor-option vendedor-base';
+
+                if (xmlData) {
+                    generateContract();
+                }
+            });
+
+            // Mostrar/ocultar campo manual do IPVA
+            document.getElementById('ipva').addEventListener('change', function () {
+                ipvaManualInput.style.display = this.value === 'Manual' ? 'block' : 'none';
+                if (xmlData) generateContract();
+            });
+
+            // Atualizar contrato quando editar multas
+            multasInput.addEventListener('input', function () {
+                if (xmlData) generateContract();
+            });
+
+            // Atualizar contrato quando editar IPVA manual
+            ipvaManualInput.addEventListener('input', function () {
+                if (xmlData) generateContract();
+            });
+
+            // Atualizar contrato quando editar forma de pagamento
+            formaPagamentoInput.addEventListener('input', function () {
+                if (xmlData) generateContract();
+            });
+
+            // Drag and drop
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                xmlUploadArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                xmlUploadArea.addEventListener(eventName, () => {
+                    xmlUploadArea.classList.add('dragover');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                xmlUploadArea.addEventListener(eventName, () => {
+                    xmlUploadArea.classList.remove('dragover');
+                }, false);
+            });
+
+            xmlUploadArea.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                xmlFileInput.files = files;
+                handleFileUpload();
+            }
+
+            function handleFileUpload() {
+                if (xmlFileInput.files.length > 0) {
+                    const file = xmlFileInput.files[0];
+
+                    if (file.type === 'text/xml' || file.name.endsWith('.xml')) {
+                        const reader = new FileReader();
+
+                        reader.onload = function (e) {
+                            try {
+                                const parser = new DOMParser();
+                                const xmlDoc = parser.parseFromString(e.target.result, "text/xml");
+                                xmlData = extractXmlData(xmlDoc);
+                                veiculoData = extractVeiculoData(xmlDoc);
+
+                                // Exibir informações do arquivo
+                                xmlFileName.textContent = file.name;
+                                xmlFileSize.textContent = formatFileSize(file.size);
+                                xmlFileInfo.style.display = 'block';
+
+                                // Exibir dados do veículo
+                                displayVeiculoData(veiculoData);
+
+                                // Preencher automaticamente o campo de forma de pagamento
+                                formaPagamentoInput.value = xmlData.formaPagamento;
+
+                                showNotification('XML processado com sucesso! Os dados foram extraídos.');
+
+                                // Gerar prévia automaticamente
+                                generateContract();
+                            } catch (error) {
+                                showNotification('Erro ao processar o XML: ' + error.message, true);
+                            }
+                        };
+
+                        reader.readAsText(file);
+                    } else {
+                        showNotification('Por favor, selecione um arquivo XML válido.', true);
+                    }
+                }
+            }
+
+            function extractXmlData(xmlDoc) {
+                const ns = 'http://www.portalfiscal.inf.br/nfe';
+                const nsResolver = function (prefix) {
+                    const ns = {
+                        'nfe': 'http://www.portalfiscal.inf.br/nfe'
+                    };
+                    return ns[prefix] || null;
+                };
+
+                const emitente = xmlDoc.evaluate('//nfe:emit', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                const destinatario = xmlDoc.evaluate('//nfe:dest', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                const produto = xmlDoc.evaluate('//nfe:det/nfe:prod', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                const total = xmlDoc.evaluate('//nfe:total/nfe:ICMSTot/nfe:vNF', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                const pagamento = xmlDoc.evaluate('//nfe:pag/nfe:detPag/nfe:xPag', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                const dataEmissao = xmlDoc.evaluate('//nfe:ide/nfe:dhEmi', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                const email = xmlDoc.evaluate('//nfe:obsCont/nfe:xTexto', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+
+                return {
+                    emitente: {
+                        nome: emitente.querySelector('xNome').textContent.toUpperCase(),
+                        cnpj: emitente.querySelector('CNPJ').textContent,
+                        endereco: {
+                            logradouro: emitente.querySelector('enderEmit > xLgr').textContent.toUpperCase(),
+                            numero: emitente.querySelector('enderEmit > nro').textContent,
+                            bairro: emitente.querySelector('enderEmit > xBairro').textContent.toUpperCase(),
+                            cidade: emitente.querySelector('enderEmit > xMun').textContent.toUpperCase(),
+                            uf: emitente.querySelector('enderEmit > UF').textContent,
+                            cep: emitente.querySelector('enderEmit > CEP').textContent
+                        }
+                    },
+                    comprador: {
+                        nome: destinatario.querySelector('xNome').textContent.toUpperCase(),
+                        cpf: destinatario.querySelector('CPF').textContent,
+                        endereco: {
+                            logradouro: destinatario.querySelector('enderDest > xLgr').textContent.toUpperCase(),
+                            numero: destinatario.querySelector('enderDest > nro').textContent,
+                            bairro: destinatario.querySelector('enderDest > xBairro').textContent.toUpperCase(),
+                            cidade: destinatario.querySelector('enderDest > xMun').textContent.toUpperCase(),
+                            uf: destinatario.querySelector('enderDest > UF').textContent,
+                            cep: destinatario.querySelector('enderDest > CEP').textContent
+                        },
+                        telefone: destinatario.querySelector('enderDest > fone').textContent,
+                        email: email ? email.textContent.toUpperCase() : ''
+                    },
+                    produto: {
+                        descricao: produto.querySelector('xProd').textContent.toUpperCase(),
+                        valor: parseFloat(produto.querySelector('vProd').textContent)
+                    },
+                    total: parseFloat(total.textContent),
+                    formaPagamento: pagamento.textContent.toUpperCase(),
+                    dataEmissao: dataEmissao.textContent.substring(0, 10)
+                };
+            }
+
+            function extractVeiculoData(xmlDoc) {
+                // Encontrar a tag infAdProd que contém os dados do veículo
+                const infAdProd = xmlDoc.getElementsByTagName('infAdProd')[0];
+                const infAdProdText = infAdProd ? infAdProd.textContent : '';
+
+                // Extrair informações específicas do veículo com expressões regulares robustas
+                const extrairDado = (texto, chave) => {
+                    const regex = new RegExp(`${chave}\\s*([^\\s]+)`);
+                    const match = texto.match(regex);
+                    return match ? match[1].toUpperCase() : 'NÃO ESPECIFICADO';
+                };
+
+                return {
+                    cor: extrairDado(infAdProdText, 'Cor:'),
+                    placa: extrairDado(infAdProdText, 'Placa:'),
+                    chassi: extrairDado(infAdProdText, 'Chassi:'),
+                    renavam: extrairDado(infAdProdText, 'Renavan:'),
+                    combustivel: extrairDado(infAdProdText, 'Combustivel:')
+                };
+            }
+
+            function displayVeiculoData(data) {
+                veiculoDetails.innerHTML = '';
+
+                const campos = [
+                    { chave: 'cor', label: 'COR' },
+                    { chave: 'placa', label: 'PLACA' },
+                    { chave: 'chassi', label: 'CHASSI' },
+                    { chave: 'renavam', label: 'RENAVAM' },
+                    { chave: 'combustivel', label: 'COMBUSTÍVEL' }
+                ];
+
+                campos.forEach(campo => {
+                    veiculoDetails.innerHTML += `
+                        <div class="veiculo-item">
+                            <strong>${campo.label}</strong>
+                            <div>${data[campo.chave]}</div>
+                        </div>
+                    `;
+                });
+
+                veiculoInfo.style.display = 'block';
+            }
+
+            function formatFileSize(bytes) {
+                if (bytes === 0) return '0 Bytes';
+                const k = 1024;
+                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+                const i = Math.floor(Math.log(bytes) / Math.log(k));
+                return parseFloat((bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i]);
+            }
+
+            function showNotification(message, isError = false) {
+                notification.textContent = message;
+                notification.classList.remove('error');
+
+                if (isError) {
+                    notification.classList.add('error');
+                }
+
+                notification.classList.add('show');
+
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, 3000);
+            }
+
+            // Gerar contrato
+            generateBtn.addEventListener('click', generateContract);
+
+            function generateContract() {
+                if (!xmlData) {
+                    showNotification('Por favor, carregue um XML primeiro.', true);
+                    return;
+                }
+
+                // Obter valores dos campos manuais
+                const quilometragem = document.getElementById('quilometragem').value || '45.000';
+                const descontoInput = document.getElementById('desconto').value || '0,00';
+                const ipvaSelect = document.getElementById('ipva');
+                const ipvaValue = ipvaSelect.value;
+                const ipvaManual = document.getElementById('ipvaManualInput').value;
+                const multas = document.getElementById('multasInput').value || 'SEM MULTAS';
+                const formaPagamento = formaPagamentoInput.value || xmlData.formaPagamento;
+
+                // Determinar o texto do IPVA
+                let ipvaTexto;
+                if (ipvaValue === 'Manual') {
+                    ipvaTexto = ipvaManual.toUpperCase();
+                } else if (ipvaValue === 'IPVA PAGO') {
+                    ipvaTexto = `IPVA ${anoAtual} PAGO`;
+                } else if (ipvaValue === 'DOCUMENTAÇÃO PAGA') {
+                    ipvaTexto = `${anoAtual} PAGO`;
+                } else {
+                    ipvaTexto = ipvaValue;
+                }
+
+                // Converter desconto para número
+                let descontoValor = 0;
+                try {
+                    descontoValor = parseFloat(descontoInput.replace('.', '').replace(',', '.'));
+                    if (isNaN(descontoValor)) descontoValor = 0;
+                } catch (e) {
+                    descontoValor = 0;
+                }
+
+                // Extrair marca e modelo usando a nova função
+                const { marca, modelo } = extrairMarcaModelo(xmlData.produto.descricao);
+
+                // Dados do contrato (tudo em maiúsculas)
+                const contractData = {
+                    vendedor: vendedorMode === 'base' ? 'MOTOLOB LTDA' : xmlData.emitente.nome,
+                    cnpjVendedor: vendedorMode === 'base' ? '42.676.954/0001-69' : formatCnpj(xmlData.emitente.cnpj),
+                    enderecoVendedor: vendedorMode === 'base' ?
+                        'AVENIDA MARECHAL CAMPOS, Nº 459, LOJA 01, BAIRRO DE LOURDES, VITÓRIA/ES' :
+                        `${xmlData.emitente.endereco.logradouro}, ${xmlData.emitente.endereco.numero}, ${xmlData.emitente.endereco.bairro}, ${xmlData.emitente.endereco.cidade}/${xmlData.emitente.endereco.uf}`,
+                    comprador: 'FABIA LEONORA HERINGER',
+                    cpfComprador: formatCpf('90071999787'),
+                    enderecoComprador: `${xmlData.comprador.endereco.logradouro}, ${xmlData.comprador.endereco.numero}, ${xmlData.comprador.endereco.bairro}`,
+                    cidadeComprador: xmlData.comprador.endereco.cidade,
+                    ufComprador: xmlData.comprador.endereco.uf,
+                    cepComprador: formatCep(xmlData.comprador.endereco.cep),
+                    telefoneComprador: formatTelefone(xmlData.comprador.telefone),
+                    emailComprador: xmlData.comprador.email,
+                    marca: marca,
+                    modelo: modelo,
+                    cor: veiculoData.cor,
+                    combustivel: veiculoData.combustivel,
+                    anoFab: '2020',
+                    anoMod: '2021',
+                    placa: veiculoData.placa,
+                    renavam: veiculoData.renavam,
+                    chassi: veiculoData.chassi,
+                    valor: xmlData.produto.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                    formaPagamento: formaPagamento,
+                    dataEmissao: formatDate(xmlData.dataEmissao),
+                    vendedorResponsavel: "BRUNA LOBATO",
+                    quilometragem: quilometragem,
+                    desconto: descontoValor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                    valorFinal: (xmlData.produto.valor - descontoValor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                    ipva: ipvaTexto,
+                    multas: multas.toUpperCase(),
+                    dia: formatDate(xmlData.dataEmissao).split('/')[0],
+                    mes: getMonthName(formatDate(xmlData.dataEmissao)),
+                    ano: formatDate(xmlData.dataEmissao).split('/')[2]
+                };
+                console.log(contractData.marca);
+                
+                // Gerar HTML do contrato
+                contractPreview.innerHTML = generateContractHTML(contractData);
+                contractInfo.style.display = 'block';
+
+                showNotification('CONTRATO GERADO COM SUCESSO!');
+            }
+
+            function formatCpf(cpf) {
+                if (!cpf || cpf.length !== 11) return cpf;
+                return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+            }
+
+            function formatCnpj(cnpj) {
+                if (!cnpj || cnpj.length !== 14) return cnpj;
+                return cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
+            }
+
+            function formatCep(cep) {
+                if (!cep || cep.length !== 8) return cep;
+                return cep.replace(/(\d{5})(\d{3})/, "$1-$2");
+            }
+
+            function formatTelefone(telefone) {
+                if (!telefone) return '';
+                telefone = telefone.replace(/\D/g, '');
+
+                if (telefone.length === 10) {
+                    return telefone.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+                } else if (telefone.length === 11) {
+                    return telefone.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+                }
+                return telefone;
+            }
+
+            function formatDate(dateString) {
+                if (!dateString) return '';
+                const date = new Date(dateString);
+                return date.toLocaleDateString('pt-BR');
+            }
+
+            function getMonthName(dateString) {
+                const months = [
+                    'JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO',
+                    'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'
+                ];
+
+                const parts = dateString.split('/');
+                if (parts.length < 2) return '';
+
+                const monthIndex = parseInt(parts[1], 10) - 1;
+                if (monthIndex >= 0 && monthIndex < 12) {
+                    return months[monthIndex];
+                }
+
+                return '';
+            }
+
+            function generateContractHTML(data) {
+                return `
+                    <h2>CONTRATO DE COMPRA E VENDA</h2>
+                    
+                    <div class="contract-section">
+                        <h3>VENDEDOR</h3>
+                        <div class="contract-field">
+                            <strong>${data.vendedor.toUpperCase()}</strong>, pessoa jurídica de direito privado, 
+                            inscrita no CNPJ ${data.cnpjVendedor}, com sede em ${data.enderecoVendedor.toUpperCase()}.
+                        </div>
+                    </div>
+                    
+                    <div class="contract-section">
+                        <h3>COMPRADOR</h3>
+                        <div class="contract-field">
+                            <strong>${data.comprador.toUpperCase()}</strong>, inscrito no CPF sob o nº. ${data.cpfComprador}, 
+                            com endereço na ${data.enderecoComprador.toUpperCase()}, ${data.cidadeComprador.toUpperCase()}/${data.ufComprador}, 
+                            CEP ${data.cepComprador}, TELEFONE ${data.telefoneComprador} e E-MAIL ${data.emailComprador.toUpperCase()}.
+                        </div>
+                    </div>
+                    
+                    <div class="contract-section">
+                        <h3>CLÁUSULA PRIMEIRA - DO OBJETO</h3>
+                        <div class="contract-field"><strong>Marca:</strong> ${data.marca.toUpperCase()}</div>
+                        <div class="contract-field"><strong>Modelo:</strong> ${data.modelo.toUpperCase()}</div>
+                        <div class="contract-field"><strong>Cor:</strong> ${data.cor.toUpperCase()}</div>
+                        <div class="contract-field"><strong>Combustível:</strong> ${data.combustivel.toUpperCase()}</div>
+                        <div class="contract-field"><strong>Vendedor:</strong> ${data.vendedorResponsavel.toUpperCase()}</div>
+                        <div class="contract-field"><strong>Data da entrega:</strong> ${data.dataEmissao}</div>
+                        <div class="contract-field"><strong>Ano Fab/Mod:</strong> ${data.anoFab}/${data.anoMod}</div>
+                        <div class="contract-field"><strong>Km:</strong> ${data.quilometragem} KM</div>
+                        <div class="contract-field"><strong>Placa:</strong> ${data.placa.toUpperCase()}</div>
+                        <div class="contract-field"><strong>Renavam:</strong> ${data.renavam.toUpperCase()}</div>
+                        <div class="contract-field"><strong>Chassi:</strong> ${data.chassi.toUpperCase()}</div>
+                    </div>
+                    
+                    <div class="contract-section">
+                        <h3>CLÁUSULA SEGUNDA - DO PREÇO E FORMA DE PAGAMENTO</h3>
+                        <div class="contract-field"><strong>Valor:</strong> R$ ${data.valor}</div>
+                        <div class="contract-field"><strong>Desconto:</strong> R$ ${data.desconto}</div>
+                        <div class="contract-field"><strong>Valor da venda:</strong> R$ ${data.valorFinal}</div>
+                        <div class="contract-field">
+                            <strong>Forma de pagamento:</strong> ${data.formaPagamento.toUpperCase()}
+                        </div>
+                        
+                        <h4>DOCUMENTAÇÃO</h4>
+                        <div class="contract-field">${data.ipva.toUpperCase()}</div>
+                        <div class="contract-field">${data.multas.toUpperCase()}</div>
+                    </div>
+                    
+                    <div class="contract-section">
+                        <p><strong>CLÁUSULA TERCEIRA - DA VISTORIA E AVALIAÇÃO DO VEÍCULO</strong></p>
+                        <p>O COMPRADOR DECLARA TER VISTORIADO E AVALIADO O ESTADO EM QUE SE ENCONTRA O VEÍCULO ORA NEGOCIADO, ESTANDO O MESMO EM PERFEITAS CONDIÇÕES DE FUNCIONAMENTO E ESTADO DE CONSERVAÇÃO.</p>
+                    </div>
+                    
+                    <div class="contract-section">
+                        <p><strong>CLÁUSULA QUARTA - DA RESPONSABILIDADE CIVIL E CRIMINAL</strong></p>
+                        <p>A PARTIR DESTA DATA ${data.dataEmissao}, O COMPRADOR SE RESPONSABILIZA POR QUAISQUER DANOS, SEJA NO ÂMBITO CIVIL OU CRIMINAL, DECORRENTE DA UTILIZAÇÃO DO VEÍCULO ORA ADQUIRIDO...</p>
+                    </div>
+                    
+                    <div class="contract-section">
+                        <p>E, PARA QUE PRODUZA SEUS LEGAIS EFEITOS, FIRMO O PRESENTE TERMO, NA PRESENÇA DE 2 (DUAS) TESTEMUNHAS.</p>
+                        <p>DIA ${data.dia} DE ${data.mes} DE ${data.ano}.</p>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-top: 40px;">
+                        <div style="width: 45%;">
+                            <p>__________________________</p>
+                            <p>${data.comprador}</p>
+                            <p>${data.cpfComprador}</p>
+                        </div>
+                        
+                        <div style="width: 45%;">
+                            <p>__________________________</p>
+                            <p>${data.vendedor}</p>
+                            <p>${data.cnpjVendedor}</p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; justify-content: space-between; margin-top: 40px;">
+                        <div style="width: 45%;">
+                            <p>__________________________</p>
+                            <p>TESTEMUNHA 1</p>
+                            <p>RG/CPF</p>
+                        </div>
+                        
+                        <div style="width: 45%;">
+                            <p>__________________________</p>
+                            <p>TESTEMUNHA 2</p>
+                            <p>RG/CPF</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Download do contrato
+            downloadBtn.addEventListener('click', async function () {
+                showNotification('GERANDO CONTRATO EM DOCX...');
+
+                try {
+                    // Coletar todos os dados do contrato
+                    // Dentro da função generateContract(), substitua o objeto contractData por:
+
+                    const contractData = {
+                        vendedor: vendedorMode === 'base' ? 'MOTOLOB LTDA' : xmlData.emitente.nome,
+                        cnpjVendedor: vendedorMode === 'base' ? '42.676.954/0001-69' : formatCnpj(xmlData.emitente.cnpj),
+                        enderecoVendedor: vendedorMode === 'base' ?
+                            'AVENIDA MARECHAL CAMPOS, Nº 459, LOJA 01, BAIRRO DE LOURDES, VITÓRIA/ES' :
+                            `${xmlData.emitente.endereco.logradouro}, ${xmlData.emitente.endereco.numero}, ${xmlData.emitente.endereco.bairro}, ${xmlData.emitente.endereco.cidade}/${xmlData.emitente.endereco.uf}`,
+                        comprador: xmlData.comprador.nome,
+                        cpfComprador: formatCpf(xmlData.comprador.cpf),
+                        enderecoComprador: `${xmlData.comprador.endereco.logradouro}, ${xmlData.comprador.endereco.numero}, ${xmlData.comprador.endereco.bairro}`,
+                        cidadeComprador: xmlData.comprador.endereco.cidade,
+                        ufComprador: xmlData.comprador.endereco.uf,
+                        cepComprador: formatCep(xmlData.comprador.endereco.cep),
+                        telefoneComprador: formatTelefone(xmlData.comprador.telefone),
+                        emailComprador: xmlData.comprador.email,
+                        marca: marca,
+                        modelo: modelo,
+                        cor: veiculoData.cor,
+                        combustivel: veiculoData.combustivel,
+                        anoFab: extrairAnoFab(xmlData.produto.descricao) || 'NÃO ESPECIFICADO',
+                        anoMod: extrairAnoMod(xmlData.produto.descricao) || 'NÃO ESPECIFICADO',
+                        placa: veiculoData.placa,
+                        renavam: veiculoData.renavam,
+                        chassi: veiculoData.chassi,
+                        valor: xmlData.produto.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                        formaPagamento: formaPagamento,
+                        dataEmissao: formatDate(xmlData.dataEmissao),
+                        vendedorResponsavel: extrairVendedorResponsavel(xmlData) || "NÃO ESPECIFICADO",
+                        quilometragem: quilometragem,
+                        desconto: descontoValor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                        valorFinal: (xmlData.produto.valor - descontoValor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                        ipva: ipvaTexto,
+                        multas: multas.toUpperCase(),
+                        dia: formatDate(xmlData.dataEmissao).split('/')[0],
+                        mes: getMonthName(formatDate(xmlData.dataEmissao)),
+                        ano: formatDate(xmlData.dataEmissao).split('/')[2]
+                    };
+
+                    // E adicione estas funções auxiliares no script:
+
+                    function extrairAnoFab(descricao) {
+                        const match = descricao.match(/\((\d{4})\//);
+                        return match ? match[1] : null;
+                    }
+
+                    function extrairAnoMod(descricao) {
+                        const match = descricao.match(/\/\d{4}\)|\/(\d{4})\)/);
+                        return match ? match[1] || match[0].replace(/\D/g, '') : null;
+                    }
+
+                    function extrairVendedorResponsavel(xmlData) {
+                        // Tenta extrair do infAdProd se existir
+                        const infAdProd = xmlDoc.getElementsByTagName('infAdProd')[0];
+                        if (infAdProd) {
+                            const match = infAdProd.textContent.match(/Vendedor:\s*([^\n]+)/i);
+                            if (match) return match[1].trim().toUpperCase();
+                        }
+                        return null;
+                    }
+                    // Enviar para o backend
+                    const response = await fetch('http://localhost:5000/gerar-contrato', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(contractData)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Erro no servidor');
+                    }
+
+                    // Criar e baixar o arquivo
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'Contrato_Gerado.docx';
+                    document.body.appendChild(a);
+                    a.click();
+                    a.remove();
+
+                    showNotification('CONTRATO BAIXADO COM SUCESSO!');
+                } catch (error) {
+                    console.error('Erro:', error);
+                    showNotification('Erro ao gerar contrato: ' + error.message, true);
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
