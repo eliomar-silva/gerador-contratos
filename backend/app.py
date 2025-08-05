@@ -34,20 +34,27 @@ CORS(app, resources={
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH = os.path.join(BASE_DIR, 'base-contrato.docx')
 
-def format_currency(value):
-    """Convert currency string (R$ 50.000,00) to float (50000.00)"""
+def format_currency(value, format_for='calculation'):
+    """
+    Converte e formata valores monetários
+    :param value: Valor de entrada (string ou número)
+    :param format_for: 'calculation' para float ou 'display' para string formatada
+    :return: Float ou string formatada
+    """
     try:
         if isinstance(value, (int, float)):
-            return float(value)
-        if not value or str(value).strip() == '':
-            return 0.0
-        return float(str(value).replace('R$', '')
-                              .replace('.', '')
-                              .replace(',', '.')
-                              .strip())
-    except ValueError as e:
-        logger.warning(f"Invalid currency value: {value} - Error: {str(e)}")
-        return 0.0
+            value_float = float(value)
+        else:
+            value_str = str(value).replace('R$', '').strip()
+            value_float = float(value_str.replace('.', '').replace(',', '.'))
+        
+        if format_for == 'display':
+            # Formata como 00.000,00
+            return f"{value_float:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        return value_float
+    except ValueError:
+        logger.warning(f"Valor monetário inválido: {value}")
+        return 0.0 if format_for == 'calculation' else "0,00"
 
 @app.after_request
 def after_request(response):
@@ -149,9 +156,9 @@ def generate_contract():
             'PLACA': data.get('placa', '').upper(),
             'RENAVAM': data.get('renavam', ''),
             'CHASSI': data.get('chassi', '').upper(),
-            'VALOR': value,
-            'DESCONTO': discount,
-            'VALOR_FINAL': final_value,
+            'VALOR': format_currency(data.get('valor', '0'), 'display'),
+            'DESCONTO': format_currency(data.get('desconto', '0'), 'display'),
+            'VALOR_FINAL': format_currency(final_value, 'display'),
             'FORMA_PAGAMENTO': data.get('formaPagamento', ''),
             'IPVA': data.get('ipva', 'PAGO'),
             'MULTAS': data.get('multas', 'NÃO'),
@@ -208,3 +215,4 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     logger.info(f"Starting server on port {port}")
     app.run(host='0.0.0.0', port=port)
+
