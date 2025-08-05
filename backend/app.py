@@ -178,7 +178,10 @@ def generate_contract():
         doc.save(output)
         output.seek(0)
         
-        filename = f"Contrato_{data['comprador'].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.docx"
+        # Modificação solicitada: Nome do arquivo como nome do comprador em maiúsculas
+        nome_comprador = data['comprador'].strip().upper()
+        filename = f"{nome_comprador}.docx"
+        
         logger.info(f"Contract generated successfully: {filename}")
         
         return send_file(
@@ -215,4 +218,3 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     logger.info(f"Starting server on port {port}")
     app.run(host='0.0.0.0', port=port)
-
