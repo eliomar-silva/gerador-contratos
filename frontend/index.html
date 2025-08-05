@@ -820,9 +820,8 @@
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
-                    const nomeComprador = appState.contractData.comprador.replace(/ /g, '_').toUpperCase();
                     a.href = url;
-                    a.download = `${nomeComprador}.docx`;
+                    a.download = 'Contrato_Gerado.docx';
                     document.body.appendChild(a);
                     a.click();
                     a.remove();
@@ -876,7 +875,7 @@
                 const destinatario = xmlDoc.evaluate('//nfe:dest', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
                 const produto = xmlDoc.evaluate('//nfe:det/nfe:prod', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
                 const total = xmlDoc.evaluate('//nfe:total/nfe:ICMSTot/nfe:vNF', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-                const pagamento = "À VISTA";
+                const pagamento = xmlDoc.evaluate('//nfe:pag/nfe:detPag/nfe:xPag', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
                 const dataEmissao = xmlDoc.evaluate('//nfe:ide/nfe:dhEmi', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
                 const email = xmlDoc.evaluate('//nfe:obsCont/nfe:xTexto', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 
@@ -912,7 +911,7 @@
                         valor: parseFloat(produto.querySelector('vProd').textContent)
                     },
                     total: parseFloat(total.textContent),
-                    formaPagamento: pagamento.toUpperCase(),
+                    formaPagamento: pagamento.textContent.toUpperCase(),
                     dataEmissao: dataEmissao.textContent.substring(0, 10) // Formato AAAA-MM-DD
                 };
             }
