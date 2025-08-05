@@ -1185,7 +1185,7 @@
                         return null;
                     }
                     // Enviar para o backend
-                    const response = await fetch('http://localhost:5000/gerar-contrato', {
+                    const response = await fetch('https://gerador-contratos-backend-ybag.onrender.com', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -1216,5 +1216,6 @@
         });
     </script>
 </body>
+
 
 </html>
