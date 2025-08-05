@@ -31,6 +31,14 @@ CORS(app, resources={
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH = os.path.join(BASE_DIR, 'base-contrato.docx')
 
+
+def formatar_para_moeda(valor):
+    """Converte string de moeda (R$ 50.000,00) para float (50000.00)"""
+    if isinstance(valor, (int, float)):
+        return float(valor)
+    return float(valor.replace('R$', '').replace('.', '').replace(',', '.').strip())
+
+
 # Middleware para tratamento de CORS
 @app.after_request
 def after_request(response):
@@ -94,6 +102,11 @@ def gerar_contrato():
             logger.error(error_msg)
             return jsonify({"erro": error_msg}), 400
 
+        # Converter valores monetários
+        valor = formatar_para_moeda(dados.get('valor', '0'))
+        desconto = formatar_para_moeda(dados.get('desconto', '0'))
+        valor_final = valor - desconto
+        
         # Contexto com valores padrão para campos opcionais
         data_emissao = dados.get('dataEmissao', datetime.now().strftime('%d/%m/%Y'))
         contexto = {
@@ -118,9 +131,9 @@ def gerar_contrato():
             'PLACA': dados.get('placa', '').upper(),
             'RENAVAM': dados.get('renavam', ''),
             'CHASSI': dados.get('chassi', '').upper(),
-            'VALOR': dados.get('valor', '0,00'),
-            'DESCONTO': dados.get('desconto', '0,00'),
-            'VALOR - DESCONTO': dados.get('valorFinal', '0,00'),
+            'VALOR': valor,
+            'DESCONTO': desconto,
+            'VALOR_FINAL': valor_final,
             'FORMA_PAGAMENTO': dados.get('formaPagamento', ''),
             'IPVA': dados.get('ipva', 'PAGO'),
             'MULTAS': dados.get('multas', 'NÃO'),
@@ -170,3 +183,4 @@ if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     logger.info(f"Iniciando servidor na porta {port}")
     app.run(host='0.0.0.0', port=port)
+
