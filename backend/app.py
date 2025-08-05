@@ -6,13 +6,16 @@ from flask_cors import CORS
 from docxtpl import DocxTemplate
 from datetime import datetime
 
-# Configuração básica de logging
-logging.basicConfig(level=logging.INFO)
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# Configuração CORS aprimorada
+# Enhanced CORS configuration
 CORS(app, resources={
     r"/.*": {
         "origins": [
@@ -27,21 +30,28 @@ CORS(app, resources={
     }
 })
 
-# Configuração de caminhos
+# Path configuration
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH = os.path.join(BASE_DIR, 'base-contrato.docx')
 
+def format_currency(value):
+    """Convert currency string (R$ 50.000,00) to float (50000.00)"""
+    try:
+        if isinstance(value, (int, float)):
+            return float(value)
+        if not value or str(value).strip() == '':
+            return 0.0
+        return float(str(value).replace('R$', '')
+                              .replace('.', '')
+                              .replace(',', '.')
+                              .strip())
+    except ValueError as e:
+        logger.warning(f"Invalid currency value: {value} - Error: {str(e)}")
+        return 0.0
 
-def formatar_para_moeda(valor):
-    """Converte string de moeda (R$ 50.000,00) para float (50000.00)"""
-    if isinstance(valor, (int, float)):
-        return float(valor)
-    return float(valor.replace('R$', '').replace('.', '').replace(',', '.').strip())
-
-
-# Middleware para tratamento de CORS
 @app.after_request
 def after_request(response):
+    """Add CORS headers to every response"""
     allowed_origins = [
         "http://127.0.0.1:5500",
         "https://eliomar-silva.github.io",
@@ -57,130 +67,144 @@ def after_request(response):
 
 @app.route('/gerar-contrato', methods=['OPTIONS'])
 def handle_options():
+    """Handle CORS preflight requests"""
     return jsonify({"status": "ok"}), 200
 
 @app.route('/gerar-contrato', methods=['POST'])
-def gerar_contrato():
+def generate_contract():
+    """Main endpoint to generate contracts"""
     try:
-        logger.info("Iniciando processamento de contrato")
+        logger.info("Starting contract processing")
         
-        # Verificação inicial
+        # Verify template exists
         if not os.path.exists(TEMPLATE_PATH):
-            error_msg = f"Template não encontrado em {TEMPLATE_PATH}"
+            error_msg = f"Template not found at {TEMPLATE_PATH}"
             logger.error(error_msg)
-            return jsonify({"erro": error_msg}), 500
+            return jsonify({"error": error_msg}), 500
 
+        # Validate content type
         if not request.is_json:
-            error_msg = "Content-Type deve ser application/json"
+            error_msg = "Content-Type must be application/json"
             logger.warning(error_msg)
-            return jsonify({"erro": error_msg}), 400
+            return jsonify({"error": error_msg}), 400
 
-        dados = request.json
-        logger.debug(f"Dados recebidos: {dados}")
+        data = request.json
+        logger.debug(f"Received data: {data}")
         
-        # Validação dos campos obrigatórios
-        campos_obrigatorios = [
+        # Validate required fields
+        required_fields = [
             'comprador', 'cpfComprador', 'enderecoComprador', 'cidadeComprador',
             'ufComprador', 'marca', 'modelo', 'cor', 'combustivel', 'dataEmissao',
             'placa', 'renavam', 'valor', 'formaPagamento'
         ]
         
-        for campo in campos_obrigatorios:
-            if campo not in dados or not dados[campo]:
-                error_msg = f"Campo obrigatório faltando: {campo}"
+        for field in required_fields:
+            if field not in data or not data[field]:
+                error_msg = f"Missing required field: {field}"
                 logger.warning(error_msg)
-                return jsonify({"erro": error_msg}), 400
+                return jsonify({"error": error_msg}), 400
 
-        # Processamento seguro do endereço
+        # Process address safely
         try:
-            partes_endereco = [parte.strip() for parte in dados['enderecoComprador'].split(',')]
-            endereco = partes_endereco[0] if len(partes_endereco) > 0 else ""
-            numero = partes_endereco[1] if len(partes_endereco) > 1 else "S/N"
-            bairro = partes_endereco[2] if len(partes_endereco) > 2 else ""
+            address_parts = [part.strip() for part in data['enderecoComprador'].split(',')]
+            address = address_parts[0] if len(address_parts) > 0 else ""
+            number = address_parts[1] if len(address_parts) > 1 else "S/N"
+            neighborhood = address_parts[2] if len(address_parts) > 2 else ""
         except Exception as e:
-            error_msg = f"Formato de endereço inválido: {str(e)}"
+            error_msg = f"Invalid address format: {str(e)}"
             logger.error(error_msg)
-            return jsonify({"erro": error_msg}), 400
+            return jsonify({"error": error_msg}), 400
 
-        # Converter valores monetários
-        valor = formatar_para_moeda(dados.get('valor', '0'))
-        desconto = formatar_para_moeda(dados.get('desconto', '0'))
-        valor_final = valor - desconto
-        
-        # Contexto com valores padrão para campos opcionais
-        data_emissao = dados.get('dataEmissao', datetime.now().strftime('%d/%m/%Y'))
-        contexto = {
-            'NOME': dados['comprador'],
-            'CPF_CNPJ': dados.get('cpfComprador', ''),
-            'ENDERECO': endereco,
-            'NUMERO': numero,
-            'BAIRRO': bairro,
-            'CIDADE': dados.get('cidadeComprador', ''),
-            'ESTADO_UF': dados.get('ufComprador', ''),
-            'CEP': dados.get('cepComprador', ''),
-            'TELEFONE_CELULAR': dados.get('telefoneComprador', ''),
-            'EMAIL': dados.get('emailComprador', ''),
-            'MARCA': dados['marca'],
-            'MODELO': dados['modelo'],
-            'COR': dados.get('cor', ''),
-            'COMBUSTÍVEL': dados.get('combustivel', ''),
-            'DIA_MES_ANO': data_emissao,
-            'ANO_FAB': dados.get('anoFab', ''),
-            'ANO_MOD': dados.get('anoMod', ''),
-            'QUILOMETRAGEM': dados.get('quilometragem', '0'),
-            'PLACA': dados.get('placa', '').upper(),
-            'RENAVAM': dados.get('renavam', ''),
-            'CHASSI': dados.get('chassi', '').upper(),
-            'VALOR': valor,
-            'DESCONTO': desconto,
-            'VALOR_FINAL': valor_final,
-            'FORMA_PAGAMENTO': dados.get('formaPagamento', ''),
-            'IPVA': dados.get('ipva', 'PAGO'),
-            'MULTAS': dados.get('multas', 'NÃO'),
-            'DIA_MES_ANO_2': data_emissao,
-            'DIA': dados.get('dia', datetime.now().strftime('%d')),
-            'MES': dados.get('mes', datetime.now().strftime('%m')),
-            'ANO': dados.get('ano', datetime.now().strftime('%Y')),
-            'NOME_2': dados.get('comprador', ''),
-            'CPF_CNPJ_2': dados.get('cpfComprador', '')
+        # Convert and validate monetary values
+        try:
+            value = format_currency(data.get('valor', '0'))
+            discount = format_currency(data.get('desconto', '0'))
+            final_value = value - discount
+        except Exception as e:
+            error_msg = f"Invalid monetary values: {str(e)}"
+            logger.error(error_msg)
+            return jsonify({"error": error_msg}), 400
+
+        # Prepare template context
+        emission_date = data.get('dataEmissao', datetime.now().strftime('%d/%m/%Y'))
+        context = {
+            'NOME': data['comprador'],
+            'CPF_CNPJ': data.get('cpfComprador', ''),
+            'ENDERECO': address,
+            'NUMERO': number,
+            'BAIRRO': neighborhood,
+            'CIDADE': data.get('cidadeComprador', ''),
+            'ESTADO_UF': data.get('ufComprador', ''),
+            'CEP': data.get('cepComprador', ''),
+            'TELEFONE_CELULAR': data.get('telefoneComprador', ''),
+            'EMAIL': data.get('emailComprador', ''),
+            'MARCA': data['marca'],
+            'MODELO': data['modelo'],
+            'COR': data.get('cor', ''),
+            'COMBUSTÍVEL': data.get('combustivel', ''),
+            'DIA_MES_ANO': emission_date,
+            'ANO_FAB': data.get('anoFab', ''),
+            'ANO_MOD': data.get('anoMod', ''),
+            'QUILOMETRAGEM': data.get('quilometragem', '0'),
+            'PLACA': data.get('placa', '').upper(),
+            'RENAVAM': data.get('renavam', ''),
+            'CHASSI': data.get('chassi', '').upper(),
+            'VALOR': value,
+            'DESCONTO': discount,
+            'VALOR_FINAL': final_value,
+            'FORMA_PAGAMENTO': data.get('formaPagamento', ''),
+            'IPVA': data.get('ipva', 'PAGO'),
+            'MULTAS': data.get('multas', 'NÃO'),
+            'DIA_MES_ANO_2': emission_date,
+            'DIA': data.get('dia', datetime.now().strftime('%d')),
+            'MES': data.get('mes', datetime.now().strftime('%m')),
+            'ANO': data.get('ano', datetime.now().strftime('%Y')),
+            'NOME_2': data.get('comprador', ''),
+            'CPF_CNPJ_2': data.get('cpfComprador', '')
         }
 
-        logger.info("Renderizando documento DOCX")
+        logger.info("Rendering DOCX template")
         doc = DocxTemplate(TEMPLATE_PATH)
-        doc.render(contexto)
+        doc.render(context)
         
         output = io.BytesIO()
         doc.save(output)
         output.seek(0)
         
-        logger.info("Contrato gerado com sucesso")
+        filename = f"Contrato_{data['comprador'].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.docx"
+        logger.info(f"Contract generated successfully: {filename}")
+        
         return send_file(
             output,
             mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             as_attachment=True,
-            download_name=f"Contrato_{dados['comprador'].replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.docx"
+            download_name=filename
         )
 
     except KeyError as e:
-        error_msg = f"Campo obrigatório faltando: {str(e)}"
+        error_msg = f"Missing required field: {str(e)}"
         logger.error(error_msg)
-        return jsonify({"erro": error_msg}), 400
+        return jsonify({"error": error_msg}), 400
     except Exception as e:
-        error_msg = f"Erro ao gerar contrato: {str(e)}"
+        error_msg = f"Error generating contract: {str(e)}"
         logger.error(error_msg, exc_info=True)
-        return jsonify({"erro": "Ocorreu um erro interno ao gerar o contrato"}), 500
+        return jsonify({"error": "An internal error occurred while generating the contract"}), 500
 
 @app.route('/healthcheck', methods=['GET', 'OPTIONS'])
 def healthcheck():
+    """Service health check endpoint"""
     return jsonify({
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
         "service": "Gerador de Contratos",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "endpoints": {
+            "generate_contract": "/gerar-contrato (POST)",
+            "healthcheck": "/healthcheck (GET)"
+        }
     })
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
-    logger.info(f"Iniciando servidor na porta {port}")
+    logger.info(f"Starting server on port {port}")
     app.run(host='0.0.0.0', port=port)
-
