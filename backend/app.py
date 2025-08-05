@@ -7,8 +7,6 @@ import os
 app = Flask(__name__)
 CORS(app)  # Permite todas as origens (apenas para desenvolvimento)
 
-app = Flask(__name__)
-
 @app.route('/gerar-contrato', methods=['POST'])
 def gerar_contrato():
     try:
@@ -79,5 +77,6 @@ def gerar_contrato():
 if __name__ == '__main__':
 
     app.run(port=5000)
+
 
 
