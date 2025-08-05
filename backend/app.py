@@ -188,10 +188,7 @@ def generate_contract():
             output,
             mimetype='application/vnd.openxmlformats-officedocument.wordprocessingml.document',
             as_attachment=True,
-            download_name=filename,
-            headers={
-                'Content-Disposition': f'attachment; filename="{filename}"'
-            }
+            download_name=filename           
         )
 
     except KeyError as e:
