@@ -1,10 +1,11 @@
-from flask_cors import CORS
-app = Flask(__name__)
-CORS(app)  # Permite todas as origens (apenas para desenvolvimento)
 from flask import Flask, request, send_file
+from flask_cors import CORS
 from docxtpl import DocxTemplate
 import io
 import os
+
+app = Flask(__name__)
+CORS(app)  # Permite todas as origens (apenas para desenvolvimento)
 
 app = Flask(__name__)
 
@@ -78,4 +79,5 @@ def gerar_contrato():
 if __name__ == '__main__':
 
     app.run(port=5000)
+
 
