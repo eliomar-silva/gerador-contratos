@@ -753,7 +753,7 @@
                 showNotification('GERANDO CONTRATO EM DOCX...');
 
                 try {
-                    const response = await fetch('https://gerador-contratos-backend-ybag.onrender.com', {
+                    const response = await fetch('https://gerador-contratos-backend-ybag.onrender.com/gerar-contrato', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1145,4 +1145,5 @@
 </body>
 
 </html>
+
 
