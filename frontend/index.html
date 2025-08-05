@@ -62,6 +62,40 @@
             gap: 30px;
         }
 
+        .veiculo-item.missing {
+            background-color: #ffebee;
+            border-left: 4px solid #f44336;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        input[type="date"] {
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input[type="date"]:focus {
+            border-color: var(--secondary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
         @media (min-width: 992px) {
             .app-container {
                 grid-template-columns: 1fr 1fr;
@@ -343,7 +377,7 @@
         }
 
         .vendedor-option {
-            margin-bottom: 20px;
+            margin-top: 20px;
             padding: 15px;
             background: #e8f4fc;
             border-radius: 10px;
@@ -525,6 +559,10 @@
                                 placeholder="Digite o status do IPVA">
                         </div>
                         <div class="form-group">
+                            <label for="dataContratoInput">Data do Contrato</label>
+                            <input type="date" id="dataContratoInput">
+                        </div>
+                        <div class="form-group">
                             <label for="multasInput">Multas Pendentes</label>
                             <input type="text" id="multasInput" value="SEM MULTAS"
                                 placeholder="Informe as multas pendentes">
@@ -590,6 +628,7 @@
             const formaPagamentoInput = document.getElementById('formaPagamentoInput');
             const quilometragemInput = document.getElementById('quilometragem');
             const descontoInput = document.getElementById('desconto');
+            const dataContratoInput = document.getElementById('dataContratoInput');
 
             // Estado da aplicação
             const appState = {
@@ -619,6 +658,7 @@
             ipvaManualInput.addEventListener('input', updateContractIfExists);
             quilometragemInput.addEventListener('input', updateContractIfExists);
             descontoInput.addEventListener('input', updateContractIfExists);
+            dataContratoInput.addEventListener('change', updateContractIfExists);
 
             // Drag and drop
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -662,6 +702,9 @@
                                 displayVeiculoData(appState.veiculoData);
                                 formaPagamentoInput.value = appState.xmlData.formaPagamento;
 
+                                // Corrigido: Usa a data do XML diretamente sem conversão
+                                dataContratoInput.value = appState.xmlData.dataEmissao;
+
                                 showNotification('XML processado com sucesso! Os dados foram extraídos.');
                                 generateContract();
                             } catch (error) {
@@ -702,6 +745,12 @@
 
                 const { marca, modelo } = extrairMarcaModelo(appState.xmlData.produto.descricao);
 
+                // Obtém a data selecionada ou usa a do XML
+                const dataSelecionada = dataContratoInput.value || appState.xmlData.dataEmissao;
+                const [ano, mes, dia] = dataSelecionada.split('-');
+                const dataFormatada = `${dia}/${mes}/${ano}`;
+                const mesExtenso = getMonthName(dataFormatada);
+
                 appState.contractData = {
                     vendedor: appState.vendedorMode === 'base' ? 'MOTOLOB LTDA' : appState.xmlData.emitente.nome,
                     cnpjVendedor: appState.vendedorMode === 'base' ? '42.676.954/0001-69' : formatCnpj(appState.xmlData.emitente.cnpj),
@@ -716,8 +765,8 @@
                     cepComprador: formatCep(appState.xmlData.comprador.endereco.cep),
                     telefoneComprador: formatTelefone(appState.xmlData.comprador.telefone),
                     emailComprador: appState.xmlData.comprador.email,
-                    marca: marca,
-                    modelo: modelo,
+                    marca: appState.veiculoData.marca || marca,
+                    modelo: appState.veiculoData.modelo || modelo,
                     cor: appState.veiculoData.cor,
                     combustivel: appState.veiculoData.combustivel,
                     anoFab: extrairAnoFab(appState.xmlData.produto.descricao) || 'NÃO ESPECIFICADO',
@@ -727,16 +776,16 @@
                     chassi: appState.veiculoData.chassi,
                     valor: appState.xmlData.produto.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
                     formaPagamento: formaPagamento,
-                    dataEmissao: formatDate(appState.xmlData.dataEmissao),
-                    vendedorResponsavel: extrairVendedorResponsavel(appState.xmlData) || "NÃO ESPECIFICADO",
+                    dataEmissao: dataFormatada,
+                    vendedorResponsavel: extrairVendedorResponsavel(appState.xmlData) || "BRUNA LOBATO",
                     quilometragem: quilometragem,
                     desconto: desconto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
                     valorFinal: (appState.xmlData.produto.valor - desconto).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
                     ipva: ipvaTexto,
                     multas: multas.toUpperCase(),
-                    dia: formatDate(appState.xmlData.dataEmissao).split('/')[0],
-                    mes: getMonthName(formatDate(appState.xmlData.dataEmissao)),
-                    ano: formatDate(appState.xmlData.dataEmissao).split('/')[2]
+                    dia: dia,
+                    mes: mesExtenso,
+                    ano: ano
                 };
 
                 contractPreview.innerHTML = generateContractHTML(appState.contractData);
@@ -863,50 +912,73 @@
                     },
                     total: parseFloat(total.textContent),
                     formaPagamento: pagamento.textContent.toUpperCase(),
-                    dataEmissao: dataEmissao.textContent.substring(0, 10)
+                    dataEmissao: dataEmissao.textContent.substring(0, 10) // Formato AAAA-MM-DD
                 };
             }
 
             function extractVeiculoData(xmlDoc) {
                 const infAdProd = xmlDoc.getElementsByTagName('infAdProd')[0];
                 const infAdProdText = infAdProd ? infAdProd.textContent : '';
+                const produtoDescricao = xmlDoc.getElementsByTagName('xProd')[0].textContent.toUpperCase();
 
                 const extrairDado = (texto, chave) => {
                     const regex = new RegExp(`${chave}\\s*([^\\s]+)`);
                     const match = texto.match(regex);
-                    return match ? match[1].toUpperCase() : 'NÃO ESPECIFICADO';
+                    return match ? match[1].toUpperCase() : null;
                 };
 
+                const marcaModelo = extrairMarcaModelo(produtoDescricao);
+
                 return {
+                    marca: marcaModelo.marca,
+                    modelo: marcaModelo.modelo,
                     cor: extrairDado(infAdProdText, 'Cor:'),
                     placa: extrairDado(infAdProdText, 'Placa:'),
                     chassi: extrairDado(infAdProdText, 'Chassi:'),
                     renavam: extrairDado(infAdProdText, 'Renavan:'),
-                    combustivel: extrairDado(infAdProdText, 'Combustivel:')
+                    combustivel: extrairDado(infAdProdText, 'Combustivel:'),
+                    anoFab: extrairAnoFab(produtoDescricao),
+                    anoMod: extrairAnoMod(produtoDescricao)
                 };
             }
 
             function displayVeiculoData(data) {
                 veiculoDetails.innerHTML = '';
+                let camposFaltantes = [];
 
                 const campos = [
+                    { chave: 'marca', label: 'MARCA' },
+                    { chave: 'modelo', label: 'MODELO' },
                     { chave: 'cor', label: 'COR' },
                     { chave: 'placa', label: 'PLACA' },
                     { chave: 'chassi', label: 'CHASSI' },
                     { chave: 'renavam', label: 'RENAVAM' },
-                    { chave: 'combustivel', label: 'COMBUSTÍVEL' }
+                    { chave: 'combustivel', label: 'COMBUSTÍVEL' },
+                    { chave: 'anoFab', label: 'ANO FAB' },
+                    { chave: 'anoMod', label: 'ANO MOD' }
                 ];
 
                 campos.forEach(campo => {
+                    const valor = data[campo.chave] || 'NÃO ENCONTRADO';
+                    const estaFaltando = valor === 'NÃO ENCONTRADO';
+
+                    if (estaFaltando) {
+                        camposFaltantes.push(campo.label);
+                    }
+
                     veiculoDetails.innerHTML += `
-                <div class="veiculo-item">
+                <div class="veiculo-item" style="${estaFaltando ? 'background-color: #ffebee; border-left: 4px solid #f44336;' : ''}">
                     <strong>${campo.label}</strong>
-                    <div>${data[campo.chave]}</div>
+                    <div>${valor}</div>
                 </div>
             `;
                 });
 
                 veiculoInfo.style.display = 'block';
+
+                if (camposFaltantes.length > 0) {
+                    showNotification(`ATENÇÃO: Algumas informações do veículo não foram encontradas: ${camposFaltantes.join(', ')}`, true);
+                }
             }
 
             function formatFileSize(bytes) {
@@ -1004,8 +1076,9 @@
 
             function formatDate(dateString) {
                 if (!dateString) return '';
-                const date = new Date(dateString);
-                return date.toLocaleDateString('pt-BR');
+                // Assume que a data vem no formato AAAA-MM-DD
+                const [ano, mes, dia] = dateString.split('-');
+                return `${dia}/${mes}/${ano}`;
             }
 
             function getMonthName(dateString) {
@@ -1014,6 +1087,7 @@
                     'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'
                 ];
 
+                // Assume que a data vem no formato DD/MM/AAAA
                 const parts = dateString.split('/');
                 if (parts.length < 2) return '';
 
@@ -1036,7 +1110,6 @@
             }
 
             function extrairVendedorResponsavel(xmlData) {
-                // Implementação conforme necessário
                 return null;
             }
 
@@ -1147,6 +1220,3 @@
 </body>
 
 </html>
-
-
-
