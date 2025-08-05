@@ -820,8 +820,9 @@
                     const blob = await response.blob();
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
+                    const nomeComprador = appState.contractData.comprador.replace(/ /g, '_').toUpperCase();
+                    a.download = `${nomeComprador}.docx`;
                     a.href = url;
-                    a.download = 'Contrato_Gerado.docx';
                     document.body.appendChild(a);
                     a.click();
                     a.remove();
