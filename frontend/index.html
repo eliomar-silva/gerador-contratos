@@ -62,11 +62,51 @@
             gap: 30px;
         }
 
-        .veiculo-item.missing {
-            background-color: #ffebee;
-            border-left: 4px solid #f44336;
-            animation: pulse 1.5s infinite;
+        .value-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: space-between;
+            padding: 4px 0;
         }
+
+        .copy-btn {
+            background: none;
+            border: none;
+            color: var(--secondary);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px;
+            margin-left: 8px;
+            opacity: 0.6;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+        }
+
+        .label-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: space-between;
+        }
+
+        .copy-btn:hover {
+            opacity: 1;
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--secondary);
+        }
+
+        .copy-btn i {
+            pointer-events: none;
+            font-size: 14px;
+        }
+
+
 
         @keyframes pulse {
             0% {
@@ -469,17 +509,38 @@
             margin-top: 10px;
         }
 
+        /* Estilo para o vendedor quando moto zero estiver ativa */
+        .vendedor-option.vendedor-nota.moto-zero {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+
+        /* Ajuste nos itens do veículo */
         .veiculo-item {
+            display: flex;
+            flex-direction: column;
             background: #d1ecf1;
-            padding: 8px;
+            padding: 10px;
             border-radius: 5px;
-            text-align: center;
+            text-align: left;
         }
 
         .veiculo-item strong {
-            display: block;
             font-size: 12px;
             color: #555;
+            margin-bottom: 4px;
+        }
+
+        .veiculo-item .value-container {
+            font-size: .8em;
+            color: #333;
+        }
+
+
+        .veiculo-item.missing {
+            background-color: #ffebee;
+            border-left: 4px solid #f44336;
+            animation: pulse 1.5s infinite;
         }
     </style>
 </head>
@@ -504,18 +565,31 @@
                     <h2>Carregar Nota Fiscal (XML)</h2>
                 </div>
                 <div class="card-body">
+
+
                     <div class="upload-area" id="xmlUploadArea">
                         <i class="fas fa-cloud-upload-alt"></i>
                         <h3>Arraste e solte seu XML aqui</h3>
                         <p>ou clique para selecionar o arquivo</p>
                         <input type="file" id="xmlFileInput" class="file-input" accept=".xml">
                     </div>
-
+                    <!-- Novo toggle para Moto Zero -->
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label class="option-label">
+                            <label class="switch">
+                                <input type="checkbox" id="motoZeroToggle">
+                                <span class="slider"></span>
+                            </label>
+                            <span>Moto Zero</span>
+                        </label>
+                    </div>
                     <div class="file-info" id="xmlFileInfo">
                         <h4>Arquivo carregado:</h4>
                         <p id="xmlFileName"></p>
                         <p id="xmlFileSize"></p>
                     </div>
+
+
 
                     <div class="veiculo-info" id="veiculoInfo" style="display: none;">
                         <h3><i class="fas fa-car"></i> Dados do Veículo Extraídos</h3>
@@ -546,7 +620,8 @@
                         </div>
                         <div class="form-group">
                             <label for="formaPagamentoInput">Forma de Pagamento</label>
-                            <input type="text" id="formaPagamentoInput" placeholder="Ex: À VISTA, PARCELADO, PIX, etc.">
+                            <input type="text" id="formaPagamentoInput" placeholder="Ex: À VISTA, PARCELADO, PIX, etc."
+                                value="À VISTA">
                         </div>
                         <div class="form-group">
                             <label for="ipva">Situação do IPVA</label>
@@ -636,6 +711,7 @@
                 veiculoData: {},
                 contractData: null,
                 vendedorMode: 'base',
+                isMotoZero: false,
                 anoAtual: new Date().getFullYear(),
                 marcasMotos: [
                     "YAMAHA", "HONDA", "KAWASAKI", "SUZUKI", "BMW",
@@ -677,12 +753,28 @@
                 }, false);
             });
 
+            // Listener para o toggle "Moto Zero"
+            // Adicione este código ao listener do toggle "Moto Zero"
+            document.getElementById('motoZeroToggle').addEventListener('change', function () {
+                appState.isMotoZero = this.checked;
+                const vendedorOption = document.querySelector('.vendedor-option');
+
+                if (this.checked) {
+                    vendedorOption.classList.add('moto-zero');
+                } else {
+                    vendedorOption.classList.remove('moto-zero');
+                }
+
+                if (appState.xmlData) generateContract();
+            });
+
             xmlUploadArea.addEventListener('drop', handleDrop, false);
 
             // Funções principais
             function handleFileUpload() {
                 if (xmlFileInput.files.length > 0) {
                     const file = xmlFileInput.files[0];
+                    appState.isMotoZero = document.getElementById('motoZeroToggle').checked;
 
                     if (file.type === 'text/xml' || file.name.endsWith('.xml')) {
                         const reader = new FileReader();
@@ -692,8 +784,13 @@
                                 const parser = new DOMParser();
                                 const xmlDoc = parser.parseFromString(e.target.result, "text/xml");
 
-                                appState.xmlData = extractXmlData(xmlDoc);
-                                appState.veiculoData = extractVeiculoData(xmlDoc);
+                                if (appState.isMotoZero) {
+                                    appState.xmlData = extractXmlDataMotoZero(xmlDoc);
+                                    appState.veiculoData = extractVeiculoDataMotoZero(xmlDoc);
+                                } else {
+                                    appState.xmlData = extractXmlData(xmlDoc);
+                                    appState.veiculoData = extractVeiculoData(xmlDoc);
+                                }
 
                                 xmlFileName.textContent = file.name;
                                 xmlFileSize.textContent = formatFileSize(file.size);
@@ -876,7 +973,7 @@
                 const destinatario = xmlDoc.evaluate('//nfe:dest', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
                 const produto = xmlDoc.evaluate('//nfe:det/nfe:prod', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
                 const total = xmlDoc.evaluate('//nfe:total/nfe:ICMSTot/nfe:vNF', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-                const pagamento = xmlDoc.evaluate('//nfe:pag/nfe:detPag/nfe:xPag', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+
                 const dataEmissao = xmlDoc.evaluate('//nfe:ide/nfe:dhEmi', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
                 const email = xmlDoc.evaluate('//nfe:obsCont/nfe:xTexto', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 
@@ -912,7 +1009,7 @@
                         valor: parseFloat(produto.querySelector('vProd').textContent)
                     },
                     total: parseFloat(total.textContent),
-                    formaPagamento: pagamento.textContent.toUpperCase(),
+                    formaPagamento: "À VISTA".toUpperCase(),
                     dataEmissao: dataEmissao.textContent.substring(0, 10) // Formato AAAA-MM-DD
                 };
             }
@@ -943,42 +1040,173 @@
                 };
             }
 
+            function extractXmlDataMotoZero(xmlDoc) {
+                const ns = 'http://www.portalfiscal.inf.br/nfe';
+                const nsResolver = function (prefix) {
+                    const ns = { 'nfe': 'http://www.portalfiscal.inf.br/nfe' };
+                    return ns[prefix] || null;
+                };
+
+                const emitente = xmlDoc.evaluate('//nfe:emit', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                const destinatario = xmlDoc.evaluate('//nfe:dest', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                const produto = xmlDoc.evaluate('//nfe:det/nfe:prod', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                const total = xmlDoc.evaluate('//nfe:total/nfe:ICMSTot/nfe:vNF', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                const dataEmissao = xmlDoc.evaluate('//nfe:ide/nfe:dhEmi', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+                const email = xmlDoc.evaluate('//nfe:obsCont/nfe:xTexto', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+
+                return {
+                    emitente: {
+                        nome: emitente.querySelector('xNome').textContent.toUpperCase(),
+                        cnpj: emitente.querySelector('CNPJ').textContent,
+                        endereco: {
+                            logradouro: emitente.querySelector('enderEmit > xLgr').textContent.toUpperCase(),
+                            numero: emitente.querySelector('enderEmit > nro').textContent,
+                            bairro: emitente.querySelector('enderEmit > xBairro').textContent.toUpperCase(),
+                            cidade: emitente.querySelector('enderEmit > xMun').textContent.toUpperCase(),
+                            uf: emitente.querySelector('enderEmit > UF').textContent,
+                            cep: emitente.querySelector('enderEmit > CEP').textContent
+                        }
+                    },
+                    comprador: {
+                        nome: destinatario.querySelector('xNome').textContent.toUpperCase(),
+                        cpf: destinatario.querySelector('CPF') ? destinatario.querySelector('CPF').textContent : destinatario.querySelector('CNPJ').textContent,
+                        endereco: {
+                            logradouro: destinatario.querySelector('enderDest > xLgr').textContent.toUpperCase(),
+                            numero: destinatario.querySelector('enderDest > nro').textContent,
+                            bairro: destinatario.querySelector('enderDest > xBairro').textContent.toUpperCase(),
+                            cidade: destinatario.querySelector('enderDest > xMun').textContent.toUpperCase(),
+                            uf: destinatario.querySelector('enderDest > UF').textContent,
+                            cep: destinatario.querySelector('enderDest > CEP').textContent
+                        },
+                        telefone: destinatario.querySelector('enderDest > fone').textContent,
+                        email: email ? email.textContent.toUpperCase() : ''
+                    },
+                    produto: {
+                        descricao: produto.querySelector('xProd').textContent.toUpperCase(),
+                        valor: parseFloat(produto.querySelector('vProd').textContent)
+                    },
+                    total: parseFloat(total.textContent),
+                    formaPagamento: "À VISTA".toUpperCase(),
+                    dataEmissao: dataEmissao.textContent.substring(0, 10) // Formato AAAA-MM-DD
+                };
+            }
+
+            // Função para extrair dados do veículo de moto zero
+            function extractVeiculoDataMotoZero(xmlDoc) {
+                const veicProd = xmlDoc.getElementsByTagName('veicProd')[0];
+                const infAdProd = xmlDoc.getElementsByTagName('infAdProd')[0];
+                const infAdProdText = infAdProd ? infAdProd.textContent : '';
+
+                // Função melhorada para extrair dados considerando diferentes padrões
+                const extrairDado = (texto, chave) => {
+                    // Padrão 1: "CHAVE: VALOR" (para campos como PINTURA, TIPO VEICULO)
+                    const regexPadrao1 = new RegExp(`${chave}:\\s*([^,]+)`);
+                    // Padrão 2: "CHAVE VALOR" (para campos como No MOTOR)
+                    const regexPadrao2 = new RegExp(`${chave}\\s+([^,]+)`);
+
+                    let match = texto.match(regexPadrao1) || texto.match(regexPadrao2);
+                    return match ? match[1].trim().toUpperCase() : null;
+                };
+
+                return {
+                    marca: 'YAMAHA', // Fixo ou extraído do XML
+                    modelo: xmlDoc.getElementsByTagName('xProd')[0].textContent.split(',')[0].toUpperCase(),
+                    serie: veicProd ? veicProd.querySelector('nSerie').textContent : extrairDado(infAdProdText, 'SERIAL'),
+                    codigo_cor: veicProd ? veicProd.querySelector('cCor').textContent : extrairDado(infAdProdText, 'CÓDIGO COR'),
+                    cor: veicProd ? veicProd.querySelector('xCor').textContent.toUpperCase() : extrairDado(infAdProdText, 'COR'),
+                    pintura: extrairDado(infAdProdText, 'PINTURA'),
+                    potencia: veicProd ? `${veicProd.querySelector('pot').textContent} CV` : extrairDado(infAdProdText, 'POTENCIA'),
+                    cilindradas: veicProd ? veicProd.querySelector('cilin').textContent : extrairDado(infAdProdText, 'CILINDRADAS'),
+                    peso_liquido: veicProd ? veicProd.querySelector('pesoL').textContent : extrairDado(infAdProdText, 'PESO LIQUIDO'),
+                    peso_bruto: veicProd ? veicProd.querySelector('pesoB').textContent : extrairDado(infAdProdText, 'PESO BRUTO'),
+                    combustivel: veicProd ? (veicProd.querySelector('tpComb').textContent === '02' ? 'GASOLINA' : 'FLEX') : extrairDado(infAdProdText, 'COMBUSTIVEL'),
+                    motor: extrairDado(infAdProdText, 'No MOTOR'),
+                    cmt: veicProd ? veicProd.querySelector('CMT').textContent : extrairDado(infAdProdText, 'CMT'),
+                    distancia_eixos: veicProd ? `${veicProd.querySelector('dist').textContent} MM` : extrairDado(infAdProdText, 'DIST. ENTRE EIXOS'),
+                    tipo_veiculo: extrairDado(infAdProdText, 'TIPO VEICULO'),
+                    renavam: veicProd ? veicProd.querySelector('cMod').textContent : extrairDado(infAdProdText, 'RENAVAM'),
+                    passageiros: extrairDado(infAdProdText, 'CAP DE PASSAGEIROS'),
+                    especie: extrairDado(infAdProdText, 'ESPECIE'),
+                    chassi: veicProd ? veicProd.querySelector('chassi').textContent : extrairDado(infAdProdText, 'CHASSI'),
+                    placa: 'NOVA', // Moto zero não tem placa
+                    anoFab: veicProd ? veicProd.querySelector('anoFab').textContent : extrairDado(infAdProdText, 'ANO FAB'),
+                    anoMod: veicProd ? veicProd.querySelector('anoMod').textContent : extrairDado(infAdProdText, 'ANO MOD')
+                };
+            }
+
+
             function displayVeiculoData(data) {
                 veiculoDetails.innerHTML = '';
                 let camposFaltantes = [];
 
-                const campos = [
-                    { chave: 'marca', label: 'MARCA' },
-                    { chave: 'modelo', label: 'MODELO' },
-                    { chave: 'cor', label: 'COR' },
-                    { chave: 'placa', label: 'PLACA' },
-                    { chave: 'chassi', label: 'CHASSI' },
-                    { chave: 'renavam', label: 'RENAVAM' },
-                    { chave: 'combustivel', label: 'COMBUSTÍVEL' },
-                    { chave: 'anoFab', label: 'ANO FAB' },
-                    { chave: 'anoMod', label: 'ANO MOD' }
-                ];
+                const campos = appState.isMotoZero
+                    ? [
+                        { chave: 'marca', label: 'MARCA' },
+                        { chave: 'modelo', label: 'MODELO' },
+                        { chave: 'serie', label: 'SÉRIE' },
+                        { chave: 'codigo_cor', label: 'CÓDIGO COR' },
+                        { chave: 'cor', label: 'COR' },
+                        { chave: 'pintura', label: 'PINTURA' },
+                        { chave: 'potencia', label: 'POTÊNCIA' },
+                        { chave: 'cilindradas', label: 'CILINDRADAS' },
+                        { chave: 'peso_liquido', label: 'PESO LÍQUIDO' },
+                        { chave: 'peso_bruto', label: 'PESO BRUTO' },
+                        { chave: 'combustivel', label: 'COMBUSTÍVEL' },
+                        { chave: 'motor', label: 'Nº MOTOR' },
+                        { chave: 'cmt', label: 'CMT' },
+                        { chave: 'distancia_eixos', label: 'DIST. EIXOS' },
+                        { chave: 'tipo_veiculo', label: 'TIPO VEÍCULO' },
+                        { chave: 'renavam', label: 'RENAVAM' },
+                        { chave: 'passageiros', label: 'PASSAGEIROS' },
+                        { chave: 'especie', label: 'ESPÉCIE' },
+                        { chave: 'chassi', label: 'CHASSI' }
+                    ]
+                    : [
+                        { chave: 'marca', label: 'MARCA' },
+                        { chave: 'modelo', label: 'MODELO' },
+                        { chave: 'cor', label: 'COR' },
+                        { chave: 'placa', label: 'PLACA' },
+                        { chave: 'chassi', label: 'CHASSI' },
+                        { chave: 'renavam', label: 'RENAVAM' },
+                        { chave: 'combustivel', label: 'COMBUSTÍVEL' },
+                        { chave: 'anoFab', label: 'ANO FAB' },
+                        { chave: 'anoMod', label: 'ANO MOD' }
+                    ];
 
                 campos.forEach(campo => {
                     const valor = data[campo.chave] || 'NÃO ENCONTRADO';
                     const estaFaltando = valor === 'NÃO ENCONTRADO';
 
-                    if (estaFaltando) {
-                        camposFaltantes.push(campo.label);
-                    }
+                    if (estaFaltando) camposFaltantes.push(campo.label);
 
                     veiculoDetails.innerHTML += `
-                <div class="veiculo-item" style="${estaFaltando ? 'background-color: #ffebee; border-left: 4px solid #f44336;' : ''}">
+            <div class="veiculo-item ${estaFaltando ? 'missing' : ''}">
+                <span class="label-container">
                     <strong>${campo.label}</strong>
-                    <div>${valor}</div>
+                    <button class="copy-btn" data-value="${valor.replace(/"/g, '&quot;')}">
+                        <i class="fas fa-copy"></i>
+                    </button>    
+                </span>
+                <div class="value-container">
+                    <span id="value-${campo.chave}">${valor}</span>                   
                 </div>
-            `;
+            </div>
+        `;
+                });
+
+                // Adiciona evento de cópia aos botões
+                document.querySelectorAll('.copy-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const value = btn.getAttribute('data-value');
+                        navigator.clipboard.writeText(value).then(() => {
+                            showNotification('Copiado para a área de transferência!');
+                        });
+                    });
                 });
 
                 veiculoInfo.style.display = 'block';
-
                 if (camposFaltantes.length > 0) {
-                    showNotification(`ATENÇÃO: Algumas informações do veículo não foram encontradas: ${camposFaltantes.join(', ')}`, true);
+                    showNotification(`Atenção: Campos não encontrados - ${camposFaltantes.join(', ')}`, true);
                 }
             }
 
