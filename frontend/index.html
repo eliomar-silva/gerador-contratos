@@ -1095,6 +1095,7 @@
             function extractVeiculoDataMotoZero(xmlDoc) {
                 const veicProd = xmlDoc.getElementsByTagName('veicProd')[0];
                 const infAdProd = xmlDoc.getElementsByTagName('infAdProd')[0];
+                const ide = xmlDoc.getElementsByTagName('ide')[0];
                 const infAdProdText = infAdProd ? infAdProd.textContent : '';
 
                 // Função melhorada para extrair dados considerando diferentes padrões
@@ -1107,11 +1108,11 @@
                     let match = texto.match(regexPadrao1) || texto.match(regexPadrao2);
                     return match ? match[1].trim().toUpperCase() : null;
                 };
-
+                                
                 return {
                     marca: 'YAMAHA', // Fixo ou extraído do XML
                     modelo: xmlDoc.getElementsByTagName('xProd')[0].textContent.split(',')[0].toUpperCase(),
-                    serie: veicProd ? veicProd.querySelector('nSerie').textContent : extrairDado(infAdProdText, 'SERIAL'),
+                    serie: ide ? ide.querySelector('serie').textContent : extrairDado(infAdProdText, 'SERIAL'),
                     codigo_cor: veicProd ? veicProd.querySelector('cCor').textContent : extrairDado(infAdProdText, 'CÓDIGO COR'),
                     cor: veicProd ? veicProd.querySelector('xCor').textContent.toUpperCase() : extrairDado(infAdProdText, 'COR'),
                     pintura: extrairDado(infAdProdText, 'PINTURA'),
