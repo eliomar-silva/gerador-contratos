@@ -106,7 +106,31 @@
             font-size: 14px;
         }
 
+        .money-input {
+            text-align: left;
+            padding-right: 30px;
+            letter-spacing: 0.5px;
+            font-size: 16px;
+        }
 
+        .money-input:focus {
+            border-color: var(--secondary);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        /* Posicionamento do ícone R$ */
+        .money-wrapper {
+            position: relative;
+        }
+
+        .money-wrapper::before {
+            content: "R$";
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #555;
+        }
 
         @keyframes pulse {
             0% {
@@ -614,9 +638,29 @@
                             <label for="quilometragem">Quilometragem (KM)</label>
                             <input type="text" id="quilometragem" placeholder="Ex: 45.000">
                         </div>
+                        <!-- Checkbox para ativar desconto -->
                         <div class="form-group">
-                            <label for="desconto">Valor do Desconto (R$)</label>
-                            <input type="text" id="desconto" placeholder="Ex: 500,00" value="0,00">
+                            <label class="option-label">
+                                <span>Aplicar Desconto</span>
+                                <label class="switch">
+                                    <input type="checkbox" id="descontoToggle">
+                                    <span class="slider"></span>
+                                </label>
+                            </label>
+                        </div>
+
+                        <!-- Campos de valor e desconto (inicialmente ocultos) -->
+                        <div id="descontoFields" style="display: none;">
+                            <div class="form-group">
+                                <label for="valorMotoInput">Valor da Moto (R$)</label>
+                                <input type="text" id="valorMotoInput" class="money-input" value=""
+                                    placeholder="R$ 0,00">
+                            </div>
+                            <div class="form-group">
+                                <label for="valorDescontoInput">Valor do Desconto (R$)</label>
+                                <input type="text" id="valorDescontoInput" class="money-input" value=""
+                                    placeholder="R$ 0,00">
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="formaPagamentoInput">Forma de Pagamento</label>
@@ -681,6 +725,69 @@
     </footer>
 
     <script>
+
+        function showNotification(message, isError = false) {
+            notification.textContent = message;
+            notification.classList.remove('error');
+
+            if (isError) {
+                notification.classList.add('error');
+            }
+
+            notification.classList.add('show');
+
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Função dedicada apenas para acordar o servidor
+        async function wakeUpServer() {
+            const wakeUpUrl = 'https://gerador-contratos-backend-ybag.onrender.com/wake-up';
+
+            try {
+                // Primeiro tenta uma requisição HEAD (mais leve)
+                let response = await fetch(wakeUpUrl, {
+                    method: 'HEAD',
+                    mode: 'cors',
+                    cache: 'no-cache'
+                });
+
+                // Se falhar, tenta com GET
+                if (!response.ok) {
+                    response = await fetch(wakeUpUrl, {
+                        method: 'GET',
+                        mode: 'cors',
+                        cache: 'no-cache'
+                    });
+                }
+
+                if (response.ok) {
+                    showNotification('Servidor ativo e pronto para uso!');
+                    console.log('Servidor ativo e pronto');
+                    return true;
+                }
+
+                throw new Error(`Status: ${response.status}`);
+
+            } catch (error) {
+                showNotification(`Servidor demorando para responder: ${error.message}`, true);
+                console.warn('Servidor demorando para responder...', error);
+                // Tenta novamente após 5 segundos
+                await new Promise(resolve => setTimeout(resolve, 5000));
+                return wakeUpServer();
+            }
+        }
+
+
+        // Inicia o servidor silenciosamente quando a página abre
+        window.addEventListener('load', () => {
+            // Inicia silenciosamente (sem mostrar para o usuário)
+            wakeUpServer();
+
+            // Mantém o servidor ativo (chama a cada 10 minutos)
+            setInterval(wakeUpServer, 10 * 60 * 1000);
+        });
         document.addEventListener('DOMContentLoaded', function () {
             // Elementos DOM
             const xmlUploadArea = document.getElementById('xmlUploadArea');
@@ -702,7 +809,7 @@
             const multasInput = document.getElementById('multasInput');
             const formaPagamentoInput = document.getElementById('formaPagamentoInput');
             const quilometragemInput = document.getElementById('quilometragem');
-            const descontoInput = document.getElementById('desconto');
+            const descontoInput = document.getElementById('valorDescontoInput');
             const dataContratoInput = document.getElementById('dataContratoInput');
 
             // Estado da aplicação
@@ -711,6 +818,9 @@
                 veiculoData: {},
                 contractData: null,
                 vendedorMode: 'base',
+                aplicarDesconto: false,
+                valorMoto: 0,
+                valorDesconto: 0,
                 isMotoZero: false,
                 anoAtual: new Date().getFullYear(),
                 marcasMotos: [
@@ -816,6 +926,117 @@
                 }
             }
 
+            // Adicione esses listeners:
+            document.getElementById('descontoToggle').addEventListener('change', function () {
+                appState.aplicarDesconto = this.checked;
+                document.getElementById('descontoFields').style.display = this.checked ? 'block' : 'none';
+                updateValores();
+            });
+
+            // Formatação monetária
+            document.querySelectorAll('.money-input').forEach(input => {
+                // Ao focar no campo, mantém os números mas remove formatação temporariamente
+                input.addEventListener('focus', function () {
+                    this.value = this.value.replace(/[^\d]/g, '');
+                    this.setSelectionRange(this.value.length, this.value.length);
+                });
+
+                // Formata em tempo real durante a digitação
+                input.addEventListener('input', function () {
+                    formatarMoedaEmTempoReal(this);
+                });
+
+                // Garante formatação correta ao sair do campo
+                input.addEventListener('blur', function () {
+                    formatarMoedaFinal(this);
+                    updateValores();
+                });
+            });
+
+            // Função para formatação em tempo real
+            function formatarMoedaEmTempoReal(elemento) {
+                let valor = elemento.value.replace(/\D/g, '');
+
+                // Adiciona zeros à esquerda para centavos
+                while (valor.length < 3) {
+                    valor = '0' + valor;
+                }
+
+                // Formatação básica durante a digitação
+                const parteInteira = valor.slice(0, -2).replace(/^0+/, '') || '0';
+                const centavos = valor.slice(-2);
+
+                // Formata com separadores de milhar
+                const parteInteiraFormatada = parteInteira.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+                elemento.value = `R$ ${parteInteiraFormatada},${centavos}`;
+
+                // Mantém o cursor na posição correta
+                const cursorPos = elemento.selectionStart;
+                if (cursorPos < 3) {
+                    elemento.setSelectionRange(4, 4);
+                }
+            }
+
+            // Função para formatação final (completa)
+            function formatarMoedaFinal(elemento) {
+                let valor = elemento.value.replace(/\D/g, '');
+
+                // Garante que temos pelo menos "0,00"
+                if (valor === '') valor = '000';
+                while (valor.length < 3) {
+                    valor = '0' + valor;
+                }
+
+                const parteInteira = valor.slice(0, -2).replace(/^0+/, '') || '0';
+                const centavos = valor.slice(-2);
+
+                // Formatação completa com separadores de milhar
+                const parteInteiraFormatada = parteInteira.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+                elemento.value = `R$ ${parteInteiraFormatada},${centavos}`;
+            }
+
+            // Função para converter o valor formatado para número
+            function converterParaNumero(valorFormatado) {
+                return parseFloat(
+                    valorFormatado
+                        .replace('R$ ', '')
+                        .replace(/\./g, '')
+                        .replace(',', '.')
+                ) || 0;
+            }
+
+            function formatarMoeda(elemento) {
+                let valor = elemento.value.replace(/\D/g, '');
+                valor = (valor / 100).toFixed(2) + '';
+                valor = valor.replace(".", ",");
+                valor = valor.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+                elemento.value = `R$ ${valor}`;
+            }
+
+            function updateValores() {
+                if (appState.aplicarDesconto) {
+                    appState.valorMoto = parseFloat(
+                        document.getElementById('valorMotoInput').value
+                            .replace('R$ ', '')
+                            .replace('.', '')
+                            .replace(',', '.')
+                    ) || 0;
+
+                    appState.valorDesconto = parseFloat(
+                        document.getElementById('valorDescontoInput').value
+                            .replace('R$ ', '')
+                            .replace('.', '')
+                            .replace(',', '.')
+                    ) || 0;
+
+                    // Atualize o contrato se necessário
+                    if (appState.xmlData) generateContract();
+                }
+            }
+
+
             function generateContract() {
                 if (!appState.xmlData) {
                     showNotification('Por favor, carregue um XML primeiro.', true);
@@ -823,11 +1044,16 @@
                 }
 
                 const quilometragem = quilometragemInput.value || '45.000';
-                const desconto = parseFloat((descontoInput.value || '0,00').replace('.', '').replace(',', '.')) || 0;
+                // const desconto = parseFloat((descontoInput.value || '0,00').replace('.', '').replace(',', '.')) || 0;
                 const ipvaValue = ipvaSelect.value;
                 const ipvaManual = ipvaManualInput.value;
                 const multas = multasInput.value || 'SEM MULTAS';
                 const formaPagamento = formaPagamentoInput.value || appState.xmlData.formaPagamento;
+                const desconto = appState.aplicarDesconto ? appState.valorDesconto : 0;
+                const valorFinal = appState.aplicarDesconto ?
+                    (appState.valorMoto - appState.valorDesconto) :
+                    appState.xmlData.produto.valor;
+
 
                 let ipvaTexto;
                 if (ipvaValue === 'Manual') {
@@ -871,13 +1097,19 @@
                     placa: appState.veiculoData.placa,
                     renavam: appState.veiculoData.renavam,
                     chassi: appState.veiculoData.chassi,
-                    valor: appState.xmlData.produto.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                    // valor: appState.xmlData.produto.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                    // desconto: desconto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                    // valorFinal: (appState.xmlData.produto.valor - desconto).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                    valor: appState.aplicarDesconto ?
+                        appState.valorMoto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) :
+                        appState.xmlData.produto.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                    desconto: desconto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                    valorFinal: valorFinal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
                     formaPagamento: formaPagamento,
                     dataEmissao: dataFormatada,
                     vendedorResponsavel: extrairVendedorResponsavel(appState.xmlData) || "BRUNA LOBATO",
                     quilometragem: quilometragem,
-                    desconto: desconto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                    valorFinal: (appState.xmlData.produto.valor - desconto).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+
                     ipva: ipvaTexto,
                     multas: multas.toUpperCase(),
                     dia: dia,
@@ -1108,7 +1340,7 @@
                     let match = texto.match(regexPadrao1) || texto.match(regexPadrao2);
                     return match ? match[1].trim().toUpperCase() : null;
                 };
-                                
+
                 return {
                     marca: 'YAMAHA', // Fixo ou extraído do XML
                     modelo: xmlDoc.getElementsByTagName('xProd')[0].textContent.split(',')[0].toUpperCase(),
@@ -1219,20 +1451,7 @@
                 return parseFloat((bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i]);
             }
 
-            function showNotification(message, isError = false) {
-                notification.textContent = message;
-                notification.classList.remove('error');
 
-                if (isError) {
-                    notification.classList.add('error');
-                }
-
-                notification.classList.add('show');
-
-                setTimeout(() => {
-                    notification.classList.remove('show');
-                }, 3000);
-            }
 
             function extrairMarcaModelo(descricao) {
                 const regexAno = /\(\d{4}\/\d{4}\)/;
@@ -1440,7 +1659,6 @@
 
             // Initialize with default values
             function init() {
-                descontoInput.value = '0,00';
                 multasInput.value = 'SEM MULTAS';
             }
 
