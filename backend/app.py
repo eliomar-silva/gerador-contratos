@@ -55,6 +55,17 @@ def format_currency(value, format_for='calculation'):
     except ValueError:
         logger.warning(f"Valor monetário inválido: {value}")
         return 0.0 if format_for == 'calculation' else "0,00"
+    
+# Adicione esta rota nova para "acordar" o servidor
+@app.route('/wake-up', methods=['GET', 'HEAD', 'OPTIONS'])
+def wake_up():
+    """Endpoint leve apenas para manter o servidor ativo"""
+    logger.info("Wake-up call received")
+    return jsonify({
+        "status": "awake",
+        "timestamp": datetime.now().isoformat(),
+        "service": "Gerador de Contratos"
+    }), 200
 
 @app.after_request
 def after_request(response):
@@ -71,6 +82,8 @@ def after_request(response):
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
     response.headers.add('Access-Control-Allow-Credentials', 'true')
     return response
+
+
 
 @app.route('/gerar-contrato', methods=['OPTIONS'])
 def handle_options():
