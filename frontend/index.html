@@ -1265,7 +1265,7 @@
                     cor: extrairDado(infAdProdText, 'Cor:'),
                     placa: extrairDado(infAdProdText, 'Placa:'),
                     chassi: extrairDado(infAdProdText, 'Chassi:'),
-                    renavam: extrairDado(infAdProdText, 'Renavan:'),
+                    renavam: extrairDado(infAdProdText, 'Renavam:') || extrairDado(infAdProdText, 'Renavan:'),
                     combustivel: extrairDado(infAdProdText, 'Combustivel:'),
                     anoFab: extrairAnoFab(produtoDescricao),
                     anoMod: extrairAnoMod(produtoDescricao)
@@ -1668,3 +1668,4 @@
 </body>
 
 </html>
+
