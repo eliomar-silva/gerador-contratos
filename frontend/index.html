@@ -1,1793 +1,2436 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gerador de Contratos Automatizado</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
     <style>
-        :root {
-            --primary: #2c3e50;
-            --secondary: #3498db;
-            --accent: #e74c3c;
-            --light: #ecf0f1;
-            --dark: #2c3e50;
-            --success: #27ae60;
-            --warning: #f39c12;
-            --info: #17a2b8;
+      :root {
+        --primary: #2c3e50;
+        --secondary: #3498db;
+        --accent: #e74c3c;
+        --light: #ecf0f1;
+        --dark: #2c3e50;
+        --success: #27ae60;
+        --warning: #f39c12;
+        --info: #17a2b8;
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        padding: 20px;
+        color: var(--dark);
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      header {
+        text-align: center;
+        padding: 30px 0;
+        margin-bottom: 30px;
+      }
+
+      header h1 {
+        font-size: 2.8rem;
+        color: var(--primary);
+        margin-bottom: 10px;
+        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      header p {
+        font-size: 1.2rem;
+        color: #555;
+        max-width: 700px;
+        margin: 0 auto;
+      }
+
+      .app-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+
+      .value-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: space-between;
+        padding: 4px 0;
+      }
+
+      .copy-btn {
+        background: none;
+        border: none;
+        color: var(--secondary);
+        cursor: pointer;
+        font-size: 14px;
+        padding: 4px;
+        margin-left: 8px;
+        opacity: 0.6;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        border-radius: 4px;
+      }
+
+      .label-container {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        justify-content: space-between;
+      }
+
+      .copy-btn:hover {
+        opacity: 1;
+        background-color: rgba(52, 152, 219, 0.1);
+        color: var(--secondary);
+      }
+
+      .copy-btn i {
+        pointer-events: none;
+        font-size: 14px;
+      }
+
+      .money-input {
+        text-align: left;
+        padding-right: 30px;
+        letter-spacing: 0.5px;
+        font-size: 16px;
+      }
+
+      .money-input:focus {
+        border-color: var(--secondary);
+        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+      }
+
+      /* Posicionamento do ícone R$ */
+      .money-wrapper {
+        position: relative;
+      }
+
+      .money-wrapper::before {
+        content: "R$";
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #555;
+      }
+
+      @keyframes pulse {
+        0% {
+          opacity: 1;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        50% {
+          opacity: 0.8;
         }
 
-        body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            color: var(--dark);
+        100% {
+          opacity: 1;
         }
+      }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+      input[type="date"] {
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+      }
 
-        header {
-            text-align: center;
-            padding: 30px 0;
-            margin-bottom: 30px;
-        }
+      input[type="date"]:focus {
+        border-color: var(--secondary);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+      }
 
-        header h1 {
-            font-size: 2.8rem;
-            color: var(--primary);
-            margin-bottom: 10px;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
-        }
-
-        header p {
-            font-size: 1.2rem;
-            color: #555;
-            max-width: 700px;
-            margin: 0 auto;
-        }
-
+      @media (min-width: 992px) {
         .app-container {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 30px;
-        }
-
-        .value-container {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            justify-content: space-between;
-            padding: 4px 0;
-        }
-
-        .copy-btn {
-            background: none;
-            border: none;
-            color: var(--secondary);
-            cursor: pointer;
-            font-size: 14px;
-            padding: 4px;
-            margin-left: 8px;
-            opacity: 0.6;
-            transition: all 0.3s ease;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 24px;
-            height: 24px;
-            border-radius: 4px;
-        }
-
-        .label-container {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            justify-content: space-between;
-        }
-
-        .copy-btn:hover {
-            opacity: 1;
-            background-color: rgba(52, 152, 219, 0.1);
-            color: var(--secondary);
-        }
-
-        .copy-btn i {
-            pointer-events: none;
-            font-size: 14px;
-        }
-
-        .money-input {
-            text-align: left;
-            padding-right: 30px;
-            letter-spacing: 0.5px;
-            font-size: 16px;
-        }
-
-        .money-input:focus {
-            border-color: var(--secondary);
-            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-        }
-
-        /* Posicionamento do ícone R$ */
-        .money-wrapper {
-            position: relative;
-        }
-
-        .money-wrapper::before {
-            content: "R$";
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #555;
-        }
-
-        @keyframes pulse {
-            0% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.8;
-            }
-
-            100% {
-                opacity: 1;
-            }
-        }
-
-        input[type="date"] {
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-
-        input[type="date"]:focus {
-            border-color: var(--secondary);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-        }
-
-        @media (min-width: 992px) {
-            .app-container {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        .card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            transition: transform 0.3s ease;
-        }
-
-        .card:hover {
-            transform: translateY(-5px);
-        }
-
-        .card-header {
-            background: var(--primary);
-            color: white;
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .card-header i {
-            font-size: 1.5rem;
-        }
-
-        .card-body {
-            padding: 30px;
-        }
-
-        .upload-area {
-            border: 3px dashed #ddd;
-            border-radius: 10px;
-            padding: 40px 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            background-color: #f9f9f9;
-            position: relative;
-        }
-
-        .upload-area:hover,
-        .upload-area.dragover {
-            border-color: var(--secondary);
-            background-color: rgba(52, 152, 219, 0.05);
-        }
-
-        .upload-area i {
-            font-size: 3.5rem;
-            color: var(--secondary);
-            margin-bottom: 15px;
-        }
-
-        .upload-area h3 {
-            margin-bottom: 10px;
-            color: var(--primary);
-        }
-
-        .file-input {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            opacity: 0;
-            cursor: pointer;
-        }
-
-        .btn {
-            display: inline-block;
-            padding: 12px 30px;
-            background: var(--secondary);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
-            margin-top: 20px;
-            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
-        }
-
-        .btn:hover {
-            background: #2980b9;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn-generate {
-            background: var(--success);
-            box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
-            width: 100%;
-            padding: 15px;
-            font-size: 1.2rem;
-            margin-top: 30px;
-        }
-
-        .btn-generate:hover {
-            background: #219653;
-            box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
-        }
-
-        .btn-download {
-            background: var(--accent);
-            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
-        }
-
-        .btn-download:hover {
-            background: #c0392b;
-            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
-        }
-
-        .file-info {
-            margin-top: 20px;
-            padding: 15px;
-            background: #f1f8ff;
-            border-radius: 8px;
-            border-left: 4px solid var(--secondary);
-            display: none;
-        }
-
-        .file-info h4 {
-            margin-bottom: 10px;
-            color: var(--primary);
-        }
-
-        .contract-preview {
-            background: #f9f9f9;
-            border-radius: 10px;
-            padding: 25px;
-            height: 500px;
-            overflow-y: auto;
-            border: 1px solid #eee;
-            line-height: 1.6;
-            font-size: 14px;
-        }
-
-        .contract-preview h2 {
-            text-align: center;
-            margin-bottom: 25px;
-            color: var(--primary);
-            padding-bottom: 15px;
-            border-bottom: 2px solid #eee;
-        }
-
-        .contract-section {
-            margin-bottom: 25px;
-        }
-
-        .contract-section h3 {
-            margin-bottom: 10px;
-            color: var(--secondary);
-            font-size: 16px;
-        }
-
-        .contract-field {
-            margin-bottom: 8px;
-            padding: 8px;
-            background: #f0f8ff;
-            border-radius: 5px;
-        }
-
-        .contract-field strong {
-            color: var(--primary);
-        }
-
-        .manual-fields {
-            margin-top: 30px;
-            padding: 20px;
-            background: #fff8e1;
-            border-radius: 10px;
-            border-left: 4px solid var(--warning);
-        }
-
-        .manual-fields h3 {
-            margin-bottom: 15px;
-            color: var(--warning);
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #555;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            border-color: var(--secondary);
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 8px;
-            background: var(--success);
-            color: white;
-            font-weight: 600;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            transform: translateX(200%);
-            transition: transform 0.3s ease;
-            z-index: 1000;
-        }
-
-        .notification.show {
-            transform: translateX(0);
-        }
-
-        .notification.error {
-            background: var(--accent);
-        }
-
-        .notification.info {
-            background: var(--info);
-        }
-
-        footer {
-            text-align: center;
-            padding: 30px 0;
-            margin-top: 50px;
-            color: #777;
-            border-top: 1px solid #eee;
-        }
-
-        .step-indicator {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 30px;
-            gap: 10px;
-        }
-
-        .step {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            background: #ddd;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            color: #777;
-        }
-
-        .step.active {
-            background: var(--secondary);
-            color: white;
-        }
-
-        .step.completed {
-            background: var(--success);
-            color: white;
-        }
-
-        .vendedor-option {
-            margin-top: 20px;
-            padding: 15px;
-            background: #e8f4fc;
-            border-radius: 10px;
-            border-left: 4px solid var(--secondary);
-        }
-
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 34px;
-            margin: 0 10px;
-        }
-
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 26px;
-            width: 26px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked+.slider {
-            background-color: var(--success);
-        }
-
-        input:focus+.slider {
-            box-shadow: 0 0 1px var(--success);
-        }
-
-        input:checked+.slider:before {
-            transform: translateX(26px);
-        }
-
-        .option-label {
-            display: flex;
-            align-items: center;
-            font-weight: 600;
-            color: var(--primary);
-        }
-
-        .vendedor-base {
-            background-color: #e8f5e9;
-        }
-
-        .vendedor-nota {
-            background-color: #ffecb3;
-        }
-
-        .veiculo-info {
-            margin-top: 20px;
-            padding: 15px;
-            background: #e8f4f8;
-            border-radius: 8px;
-            border-left: 4px solid #2c9faf;
-        }
-
-        .veiculo-info h3 {
-            margin-bottom: 10px;
-            color: #2c9faf;
-        }
-
-        .veiculo-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        /* Estilo para o vendedor quando moto zero estiver ativa */
-        .vendedor-option.vendedor-nota.moto-zero {
-            background-color: #e3f2fd;
-            border-left: 4px solid #2196f3;
-        }
-
-        /* Ajuste nos itens do veículo */
-        .veiculo-item {
-            display: flex;
-            flex-direction: column;
-            background: #d1ecf1;
-            padding: 10px;
-            border-radius: 5px;
-            text-align: left;
-        }
-
-        .veiculo-item strong {
-            font-size: 12px;
-            color: #555;
-            margin-bottom: 4px;
-        }
-
-        .veiculo-item .value-container {
-            font-size: .8em;
-            color: #333;
-        }
-
-        .veiculo-item.missing {
-            background-color: #ffebee;
-            border-left: 4px solid #f44336;
-            animation: pulse 1.5s infinite;
-        }
-
-        /* Estilos para o modo manual */
-        .manual-mode-section {
-            margin-top: 20px;
-            padding: 20px;
-            background: #e8f5e9;
-            border-radius: 10px;
-            border-left: 4px solid var(--success);
-            display: none;
-        }
-
-        .manual-mode-section.active {
-            display: block;
-            animation: slideDown 0.3s ease;
-        }
-
-        .manual-mode-toggle {
-            margin-top: 20px;
-            padding: 15px;
-            background: #fff3cd;
-            border-radius: 10px;
-            border-left: 4px solid var(--warning);
-        }
-
-        .manual-mode-toggle h3 {
-            margin-bottom: 10px;
-            color: var(--warning);
-        }
-
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      .card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        transition: transform 0.3s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+      }
+
+      .card-header {
+        background: var(--primary);
+        color: white;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .card-header i {
+        font-size: 1.5rem;
+      }
+
+      .card-body {
+        padding: 30px;
+      }
+
+      .upload-area {
+        border: 3px dashed #ddd;
+        border-radius: 10px;
+        padding: 40px 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        background-color: #f9f9f9;
+        position: relative;
+      }
+
+      .upload-area:hover,
+      .upload-area.dragover {
+        border-color: var(--secondary);
+        background-color: rgba(52, 152, 219, 0.05);
+      }
+
+      .upload-area i {
+        font-size: 3.5rem;
+        color: var(--secondary);
+        margin-bottom: 15px;
+      }
+
+      .upload-area h3 {
+        margin-bottom: 10px;
+        color: var(--primary);
+      }
+
+      .file-input {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        opacity: 0;
+        cursor: pointer;
+      }
+
+      .btn {
+        display: inline-block;
+        padding: 12px 30px;
+        background: var(--secondary);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+        margin-top: 20px;
+        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+      }
+
+      .btn:hover {
+        background: #2980b9;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+      }
+
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .btn-generate {
+        background: var(--success);
+        box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
+        width: 100%;
+        padding: 15px;
+        font-size: 1.2rem;
+        margin-top: 30px;
+      }
+
+      .btn-generate:hover {
+        background: #219653;
+        box-shadow: 0 6px 20px rgba(39, 174, 96, 0.4);
+      }
+
+      .btn-download {
+        background: var(--accent);
+        box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+      }
+
+      .btn-download:hover {
+        background: #c0392b;
+        box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+      }
+
+      .btn-download:disabled {
+        background: #cccccc;
+        cursor: not-allowed;
+        box-shadow: none;
+        transform: none;
+      }
+
+      .file-info {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f1f8ff;
+        border-radius: 8px;
+        border-left: 4px solid var(--secondary);
+        display: none;
+      }
+
+      .file-info h4 {
+        margin-bottom: 10px;
+        color: var(--primary);
+      }
+
+      .contract-preview {
+        background: #f9f9f9;
+        border-radius: 10px;
+        padding: 25px;
+        height: 500px;
+        overflow-y: auto;
+        border: 1px solid #eee;
+        line-height: 1.6;
+        font-size: 14px;
+      }
+
+      .contract-preview h2 {
+        text-align: center;
+        margin-bottom: 25px;
+        color: var(--primary);
+        padding-bottom: 15px;
+        border-bottom: 2px solid #eee;
+      }
+
+      .contract-section {
+        margin-bottom: 25px;
+      }
+
+      .contract-section h3 {
+        margin-bottom: 10px;
+        color: var(--secondary);
+        font-size: 16px;
+      }
+
+      .contract-field {
+        margin-bottom: 8px;
+        padding: 8px;
+        background: #f0f8ff;
+        border-radius: 5px;
+      }
+
+      .contract-field strong {
+        color: var(--primary);
+      }
+
+      .manual-fields {
+        margin-top: 30px;
+        padding: 20px;
+        background: #fff8e1;
+        border-radius: 10px;
+        border-left: 4px solid var(--warning);
+      }
+
+      .manual-fields h3 {
+        margin-bottom: 15px;
+        color: var(--warning);
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #555;
+      }
+
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        border-color: var(--secondary);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+      }
+
+      .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 8px;
+        background: var(--success);
+        color: white;
+        font-weight: 600;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        transform: translateX(200%);
+        transition: transform 0.3s ease;
+        z-index: 1000;
+      }
+
+      .notification.show {
+        transform: translateX(0);
+      }
+
+      .notification.error {
+        background: var(--accent);
+      }
+
+      .notification.info {
+        background: var(--info);
+      }
+
+      footer {
+        text-align: center;
+        padding: 30px 0;
+        margin-top: 50px;
+        color: #777;
+        border-top: 1px solid #eee;
+      }
+
+      .step-indicator {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 30px;
+        gap: 10px;
+      }
+
+      .step {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: #ddd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        color: #777;
+      }
+
+      .step.active {
+        background: var(--secondary);
+        color: white;
+      }
+
+      .step.completed {
+        background: var(--success);
+        color: white;
+      }
+
+      .vendedor-option {
+        margin-top: 20px;
+        padding: 15px;
+        background: #e8f4fc;
+        border-radius: 10px;
+        border-left: 4px solid var(--secondary);
+      }
+
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 60px;
+        height: 34px;
+        margin: 0 10px;
+      }
+
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: 0.4s;
+        border-radius: 34px;
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 26px;
+        width: 26px;
+        left: 4px;
+        bottom: 4px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+      }
+
+      input:checked + .slider {
+        background-color: var(--success);
+      }
+
+      input:focus + .slider {
+        box-shadow: 0 0 1px var(--success);
+      }
+
+      input:checked + .slider:before {
+        transform: translateX(26px);
+      }
+
+      .option-label {
+        display: flex;
+        align-items: center;
+        font-weight: 600;
+        color: var(--primary);
+      }
+
+      .vendedor-base {
+        background-color: #e8f5e9;
+      }
+
+      .vendedor-nota {
+        background-color: #ffecb3;
+      }
+
+      .veiculo-info {
+        margin-top: 20px;
+        padding: 15px;
+        background: #e8f4f8;
+        border-radius: 8px;
+        border-left: 4px solid #2c9faf;
+      }
+
+      .veiculo-info h3 {
+        margin-bottom: 10px;
+        color: #2c9faf;
+      }
+
+      .veiculo-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      /* Estilo para o vendedor quando moto zero estiver ativa */
+      .vendedor-option.vendedor-nota.moto-zero {
+        background-color: #e3f2fd;
+        border-left: 4px solid #2196f3;
+      }
+
+      /* Ajuste nos itens do veículo */
+      .veiculo-item {
+        display: flex;
+        flex-direction: column;
+        background: #d1ecf1;
+        padding: 10px;
+        border-radius: 5px;
+        text-align: left;
+      }
+
+      .veiculo-item strong {
+        font-size: 12px;
+        color: #555;
+        margin-bottom: 4px;
+      }
+
+      .veiculo-item .value-container {
+        font-size: 0.8em;
+        color: #333;
+      }
+
+      .veiculo-item.missing {
+        background-color: #ffebee;
+        border-left: 4px solid #f44336;
+        animation: pulse 1.5s infinite;
+      }
+
+      /* Estilos para o modo manual */
+      .manual-mode-section {
+        margin-top: 20px;
+        padding: 20px;
+        background: #e8f5e9;
+        border-radius: 10px;
+        border-left: 4px solid var(--success);
+        display: none;
+      }
+
+      .manual-mode-section.active {
+        display: block;
+        animation: slideDown 0.3s ease;
+      }
+
+      .manual-mode-toggle {
+        margin-top: 20px;
+        padding: 15px;
+        background: #fff3cd;
+        border-radius: 10px;
+        border-left: 4px solid var(--warning);
+      }
+
+      .manual-mode-toggle h3 {
+        margin-bottom: 10px;
+        color: var(--warning);
+      }
+
+      .two-column-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+      }
+
+      /* Novos estilos para os campos divididos */
+      .inline-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .three-column-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr 80px;
+        gap: 10px;
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 768px) {
         .two-column-form {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+          grid-template-columns: 1fr;
         }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .inline-group,
+        .three-column-group {
+          grid-template-columns: 1fr;
         }
-
-        @media (max-width: 768px) {
-            .two-column-form {
-                grid-template-columns: 1fr;
-            }
-        }
+      }
     </style>
-</head>
+  </head>
 
-<body>
+  <body>
     <div class="container">
-        <header>
-            <h1><i class="fas fa-file-contract"></i> Gerador de Contratos Automatizado</h1>
-            <p>Transforme notas fiscais em contratos profissionais com apenas alguns cliques</p>
-        </header>
+      <header>
+        <h1>
+          <i class="fas fa-file-contract"></i> Gerador de Contratos Automatizado
+        </h1>
+        <p>
+          Transforme notas fiscais em contratos profissionais com apenas alguns
+          cliques
+        </p>
+      </header>
 
-        <div class="step-indicator">
-            <div class="step completed">1</div>
-            <div class="step active">2</div>
-            <div class="step">3</div>
-        </div>
+      <div class="step-indicator">
+        <div class="step completed">1</div>
+        <div class="step active">2</div>
+        <div class="step">3</div>
+      </div>
 
-        <div class="app-container">
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-file-upload"></i>
-                    <h2>Carregar Nota Fiscal (XML)</h2>
-                </div>
-                <div class="card-body">
-                    <!-- Toggle do Modo Manual -->
-                    <div class="manual-mode-toggle">
-                        <div class="option-label">
-                            <span>Modo Automático (XML)</span>
-                            <label class="switch">
-                                <input type="checkbox" id="manualModeToggle">
-                                <span class="slider"></span>
-                            </label>
-                            <span>Modo Manual</span>
-                        </div>
-                        <p class="contract-field" id="modeStatus">Atualmente: Modo Automático (carregue um XML)</p>
-                    </div>
-
-                    <!-- Área de Upload XML (visível apenas no modo automático) -->
-                    <div id="xmlUploadSection">
-                        <div class="upload-area" id="xmlUploadArea">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <h3>Arraste e solte seu XML aqui</h3>
-                            <p>ou clique para selecionar o arquivo</p>
-                            <input type="file" id="xmlFileInput" class="file-input" accept=".xml">
-                        </div>
-                        
-                        <!-- Toggle para Moto Zero -->
-                        <div class="form-group" style="margin-top: 15px;">
-                            <label class="option-label">
-                                <label class="switch">
-                                    <input type="checkbox" id="motoZeroToggle">
-                                    <span class="slider"></span>
-                                </label>
-                                <span>Moto Zero</span>
-                            </label>
-                        </div>
-                        
-                        <div class="file-info" id="xmlFileInfo">
-                            <h4>Arquivo carregado:</h4>
-                            <p id="xmlFileName"></p>
-                            <p id="xmlFileSize"></p>
-                        </div>
-
-                        <div class="veiculo-info" id="veiculoInfo" style="display: none;">
-                            <h3><i class="fas fa-car"></i> Dados do Veículo Extraídos</h3>
-                            <div class="veiculo-details" id="veiculoDetails"></div>
-                        </div>
-                    </div>
-
-                    <!-- Seção do Modo Manual (visível apenas quando ativado) -->
-                    <div class="manual-mode-section" id="manualModeSection">
-                        <h3><i class="fas fa-keyboard"></i> Dados do Contrato (Modo Manual)</h3>
-                        <div class="two-column-form">
-                            <!-- Coluna 1: Vendedor -->
-                            <div>
-                                <h4>Dados do Vendedor</h4>
-                                <div class="form-group">
-                                    <label for="manualVendedor">Nome do Vendedor</label>
-                                    <input type="text" id="manualVendedor" placeholder="Ex: MOTOLOB LTDA" value="MOTOLOB LTDA">
-                                </div>
-                                <div class="form-group">
-                                    <label for="manualCnpjVendedor">CNPJ</label>
-                                    <input type="text" id="manualCnpjVendedor" placeholder="00.000.000/0000-00" value="42.676.954/0001-69">
-                                </div>
-                                <div class="form-group">
-                                    <label for="manualEnderecoVendedor">Endereço</label>
-                                    <input type="text" id="manualEnderecoVendedor" 
-                                           placeholder="Endereço completo" 
-                                           value="AVENIDA MARECHAL CAMPOS, Nº 459, LOJA 01, BAIRRO DE LOURDES, VITÓRIA/ES">
-                                </div>
-                            </div>
-
-                            <!-- Coluna 2: Comprador -->
-                            <div>
-                                <h4>Dados do Comprador</h4>
-                                <div class="form-group">
-                                    <label for="manualComprador">Nome do Comprador</label>
-                                    <input type="text" id="manualComprador" placeholder="Nome completo">
-                                </div>
-                                <div class="form-group">
-                                    <label for="manualCpfComprador">CPF</label>
-                                    <input type="text" id="manualCpfComprador" placeholder="000.000.000-00">
-                                </div>
-                                <div class="form-group">
-                                    <label for="manualEnderecoComprador">Endereço</label>
-                                    <input type="text" id="manualEnderecoComprador" placeholder="Rua, Número, Bairro">
-                                </div>
-                                <div class="form-group">
-                                    <label for="manualCidadeComprador">Cidade/UF</label>
-                                    <input type="text" id="manualCidadeComprador" placeholder="Cidade/UF">
-                                </div>
-                                <div class="form-group">
-                                    <label for="manualCepComprador">CEP</label>
-                                    <input type="text" id="manualCepComprador" placeholder="00000-000">
-                                </div>
-                                <div class="form-group">
-                                    <label for="manualTelefoneComprador">Telefone</label>
-                                    <input type="text" id="manualTelefoneComprador" placeholder="(00) 00000-0000">
-                                </div>
-                                <div class="form-group">
-                                    <label for="manualEmailComprador">E-mail</label>
-                                    <input type="email" id="manualEmailComprador" placeholder="email@exemplo.com">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Dados do Veículo -->
-                        <div style="margin-top: 20px; padding-top: 20px; border-top: 2px dashed #ddd;">
-                            <h4>Dados do Veículo</h4>
-                            <div class="two-column-form">
-                                <div class="form-group">
-                                    <label for="manualMarca">Marca</label>
-                                    <input type="text" id="manualMarca" placeholder="Ex: YAMAHA, HONDA">
-                                </div>
-                                <div class="form-group">
-                                    <label for="manualModelo">Modelo</label>
-                                    <input type="text" id="manualModelo" placeholder="Ex: FACTOR 150, CG 160">
-                                </div>
-                                <div class="form-group">
-                                    <label for="manualCor">Cor</label>
-                                    <input type="text" id="manualCor" placeholder="Ex: PRETA, VERMELHA">
-                                </div>
-                                <div class="form-group">
-                                    <label for="manualCombustivel">Combustível</label>
-                                    <input type="text" id="manualCombustivel" placeholder="Ex: GASOLINA, FLEX" value="GASOLINA">
-                                </div>
-                                <div class="form-group">
-                                    <label for="manualAnoFab">Ano Fabricação</label>
-                                    <input type="text" id="manualAnoFab" placeholder="Ex: 2020">
-                                </div>
-                                <div class="form-group">
-                                    <label for="manualAnoMod">Ano Modelo</label>
-                                    <input type="text" id="manualAnoMod" placeholder="Ex: 2020">
-                                </div>
-                                <div class="form-group">
-                                    <label for="manualPlaca">Placa</label>
-                                    <input type="text" id="manualPlaca" placeholder="Ex: ABC1D23">
-                                </div>
-                                <div class="form-group">
-                                    <label for="manualRenavam">RENAVAM</label>
-                                    <input type="text" id="manualRenavam" placeholder="00000000000">
-                                </div>
-                                <div class="form-group">
-                                    <label for="manualChassi">Chassi</label>
-                                    <input type="text" id="manualChassi" placeholder="9BWZZZ377VT004251">
-                                </div>
-                                <div class="form-group">
-                                    <label for="manualVendedorResponsavel">Vendedor Responsável</label>
-                                    <input type="text" id="manualVendedorResponsavel" placeholder="Nome do vendedor" value="BRUNA LOBATO">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Seção comum (visível em ambos os modos) -->
-                    <div class="vendedor-option">
-                        <div class="option-label">
-                            <span>Usar vendedor base</span>
-                            <label class="switch">
-                                <input type="checkbox" id="vendedorToggle">
-                                <span class="slider"></span>
-                            </label>
-                            <span>Usar vendedor da nota</span>
-                        </div>
-                        <p class="contract-field" id="vendedorStatus">Atualmente: Vendedor base será utilizado</p>
-                    </div>
-
-                    <div class="manual-fields">
-                        <h3><i class="fas fa-edit"></i> Dados Complementares</h3>
-                        <div class="form-group">
-                            <label for="quilometragem">Quilometragem (KM)</label>
-                            <input type="text" id="quilometragem" placeholder="Ex: 45.000">
-                        </div>
-                        
-                        <!-- Checkbox para ativar desconto -->
-                        <div class="form-group">
-                            <label class="option-label">
-                                <span>Aplicar Desconto</span>
-                                <label class="switch">
-                                    <input type="checkbox" id="descontoToggle">
-                                    <span class="slider"></span>
-                                </label>
-                            </label>
-                        </div>
-
-                        <!-- Campos de valor e desconto -->
-                        <div id="descontoFields" style="display: none;">
-                            <div class="form-group">
-                                <label for="valorMotoInput">Valor da Moto (R$)</label>
-                                <input type="text" id="valorMotoInput" class="money-input" value="" placeholder="R$ 0,00">
-                            </div>
-                            <div class="form-group">
-                                <label for="valorDescontoInput">Valor do Desconto (R$)</label>
-                                <input type="text" id="valorDescontoInput" class="money-input" value="" placeholder="R$ 0,00">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="formaPagamentoInput">Forma de Pagamento</label>
-                            <input type="text" id="formaPagamentoInput" placeholder="Ex: À VISTA, PARCELADO, PIX, etc." value="À VISTA">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="valorContratoInput">Valor do Contrato (R$)</label>
-                            <input type="text" id="valorContratoInput" class="money-input" placeholder="R$ 0,00">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="ipva">Situação do IPVA</label>
-                            <select id="ipva">
-                                <option value="IPVA PAGO">IPVA PAGO</option>
-                                <option value="DOCUMENTAÇÃO PAGA">Documentação Paga</option>
-                                <option value="Manual">Manual</option>
-                            </select>
-                            <input type="text" id="ipvaManualInput" style="display: none; margin-top: 10px;" placeholder="Digite o status do IPVA">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="dataContratoInput">Data do Contrato</label>
-                            <input type="date" id="dataContratoInput">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label for="multasInput">Multas Pendentes</label>
-                            <input type="text" id="multasInput" value="SEM MULTAS" placeholder="Informe as multas pendentes">
-                        </div>
-                    </div>
-
-                    <button class="btn btn-generate" id="generateBtn">
-                        <i class="fas fa-cogs"></i> Gerar Contrato
-                    </button>
-                </div>
+      <div class="app-container">
+        <div class="card">
+          <div class="card-header">
+            <i class="fas fa-file-upload"></i>
+            <h2>Carregar Nota Fiscal (XML)</h2>
+          </div>
+          <div class="card-body">
+            <!-- Toggle do Modo Manual -->
+            <div class="manual-mode-toggle">
+              <div class="option-label">
+                <span>Modo Automático (XML)</span>
+                <label class="switch">
+                  <input type="checkbox" id="manualModeToggle" />
+                  <span class="slider"></span>
+                </label>
+                <span>Modo Manual</span>
+              </div>
+              <p class="contract-field" id="modeStatus">
+                Atualmente: Modo Automático (carregue um XML)
+              </p>
             </div>
 
-            <div class="card">
-                <div class="card-header">
-                    <i class="fas fa-file-alt"></i>
-                    <h2>Prévia do Contrato</h2>
-                </div>
-                <div class="card-body">
-                    <div class="contract-preview" id="contractPreview">
-                        <p>Carregue um arquivo XML ou ative o modo manual para visualizar o contrato gerado automaticamente.</p>
-                    </div>
+            <!-- Área de Upload XML (visível apenas no modo automático) -->
+            <div id="xmlUploadSection">
+              <div class="upload-area" id="xmlUploadArea">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h3>Arraste e solte seu XML aqui</h3>
+                <p>ou clique para selecionar o arquivo</p>
+                <input
+                  type="file"
+                  id="xmlFileInput"
+                  class="file-input"
+                  accept=".xml"
+                />
+              </div>
 
-                    <div class="file-info" id="contractInfo" style="display: none;">
-                        <h4>Contrato gerado com sucesso!</h4>
-                        <p>Revise o documento e faça o download.</p>
-                        <button class="btn btn-download" id="downloadBtn">
-                            <i class="fas fa-download"></i> Baixar Contrato (DOCX)
-                        </button>
-                    </div>
-                </div>
+              <!-- Toggle para Moto Zero -->
+              <div class="form-group" style="margin-top: 15px">
+                <label class="option-label">
+                  <label class="switch">
+                    <input type="checkbox" id="motoZeroToggle" />
+                    <span class="slider"></span>
+                  </label>
+                  <span>Moto Zero</span>
+                </label>
+              </div>
+
+              <div class="file-info" id="xmlFileInfo">
+                <h4>Arquivo carregado:</h4>
+                <p id="xmlFileName"></p>
+                <p id="xmlFileSize"></p>
+              </div>
+
+              <div class="veiculo-info" id="veiculoInfo" style="display: none">
+                <h3><i class="fas fa-car"></i> Dados do Veículo Extraídos</h3>
+                <div class="veiculo-details" id="veiculoDetails"></div>
+              </div>
             </div>
+
+            <!-- Seção do Modo Manual (visível apenas quando ativado) -->
+            <div class="manual-mode-section" id="manualModeSection">
+              <h3>
+                <i class="fas fa-keyboard"></i> Dados do Contrato (Modo Manual)
+              </h3>
+              <div class="two-column-form">
+                <!-- Coluna 1: Vendedor -->
+                <div>
+                  <h4>Dados do Vendedor</h4>
+                  <div class="form-group">
+                    <label for="manualVendedor">Nome do Vendedor</label>
+                    <input
+                      type="text"
+                      id="manualVendedor"
+                      placeholder="Ex: MOTOLOB LTDA"
+                      value="MOTOLOB LTDA"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="manualCnpjVendedor">CNPJ</label>
+                    <input
+                      type="text"
+                      id="manualCnpjVendedor"
+                      placeholder="00.000.000/0000-00"
+                      value="42.676.954/0001-69"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="manualEnderecoVendedor">Endereço</label>
+                    <input
+                      type="text"
+                      id="manualEnderecoVendedor"
+                      placeholder="Endereço completo"
+                      value="AVENIDA MARECHAL CAMPOS, Nº 459, LOJA 01, BAIRRO DE LOURDES, VITÓRIA/ES"
+                    />
+                  </div>
+                </div>
+
+                <!-- Coluna 2: Comprador -->
+                <div>
+                  <h4>Dados do Comprador</h4>
+                  <div class="form-group">
+                    <label for="manualComprador">Nome do Comprador</label>
+                    <input
+                      type="text"
+                      id="manualComprador"
+                      placeholder="Nome completo"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="manualCpfComprador">CPF</label>
+                    <input
+                      type="text"
+                      id="manualCpfComprador"
+                      placeholder="000.000.000-00"
+                    />
+                  </div>
+
+                  <!-- Endereço dividido em Logradouro, Número e Bairro -->
+                  <div class="form-group">
+                    <label>Endereço</label>
+                    <div class="three-column-group">
+                      <div>
+                        <input
+                          type="text"
+                          id="manualLogradouroComprador"
+                          placeholder="Rua/Av"
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          id="manualNumeroComprador"
+                          placeholder="Número"
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          id="manualBairroComprador"
+                          placeholder="Bairro"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Cidade e UF separados -->
+                  <div class="form-group">
+                    <label>Cidade/UF</label>
+                    <div class="inline-group">
+                      <div>
+                        <input
+                          type="text"
+                          id="manualCidadeComprador"
+                          placeholder="Cidade"
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="text"
+                          id="manualUfComprador"
+                          placeholder="UF"
+                          maxlength="2"
+                          style="text-transform: uppercase"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="manualCepComprador">CEP</label>
+                    <input
+                      type="text"
+                      id="manualCepComprador"
+                      placeholder="00000-000"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="manualTelefoneComprador">Telefone</label>
+                    <input
+                      type="text"
+                      id="manualTelefoneComprador"
+                      placeholder="(00) 00000-0000"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="manualEmailComprador">E-mail</label>
+                    <input
+                      type="email"
+                      id="manualEmailComprador"
+                      placeholder="email@exemplo.com"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Dados do Veículo -->
+              <div
+                style="
+                  margin-top: 20px;
+                  padding-top: 20px;
+                  border-top: 2px dashed #ddd;
+                "
+              >
+                <h4>Dados do Veículo</h4>
+                <div class="two-column-form">
+                  <div class="form-group">
+                    <label for="manualMarca">Marca</label>
+                    <input
+                      type="text"
+                      id="manualMarca"
+                      placeholder="Ex: YAMAHA, HONDA"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="manualModelo">Modelo</label>
+                    <input
+                      type="text"
+                      id="manualModelo"
+                      placeholder="Ex: FACTOR 150, CG 160"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="manualCor">Cor</label>
+                    <input
+                      type="text"
+                      id="manualCor"
+                      placeholder="Ex: PRETA, VERMELHA"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="manualCombustivel">Combustível</label>
+                    <input
+                      type="text"
+                      id="manualCombustivel"
+                      placeholder="Ex: GASOLINA, FLEX"
+                      value="GASOLINA"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="manualAnoFab">Ano Fabricação</label>
+                    <select id="manualAnoFab">
+                      <!-- Gerado dinamicamente -->
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="manualAnoMod">Ano Modelo</label>
+                    <select id="manualAnoMod">
+                      <!-- Gerado dinamicamente -->
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="manualPlaca">Placa</label>
+                    <input
+                      type="text"
+                      id="manualPlaca"
+                      placeholder="Ex: ABC1D23"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="manualRenavam">RENAVAM</label>
+                    <input
+                      type="text"
+                      id="manualRenavam"
+                      placeholder="00000000000"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="manualChassi">Chassi</label>
+                    <input
+                      type="text"
+                      id="manualChassi"
+                      placeholder="9BWZZZ377VT004251"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="manualVendedorResponsavel"
+                      >Vendedor Responsável</label
+                    >
+                    <input
+                      type="text"
+                      id="manualVendedorResponsavel"
+                      placeholder="Nome do vendedor"
+                      value="BRUNA LOBATO"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Seção comum (visível em ambos os modos) -->
+            <div class="vendedor-option">
+              <div class="option-label">
+                <span>Usar vendedor base</span>
+                <label class="switch">
+                  <input type="checkbox" id="vendedorToggle" />
+                  <span class="slider"></span>
+                </label>
+                <span>Usar vendedor da nota</span>
+              </div>
+              <p class="contract-field" id="vendedorStatus">
+                Atualmente: Vendedor base será utilizado
+              </p>
+            </div>
+
+            <div class="manual-fields">
+              <h3><i class="fas fa-edit"></i> Dados Complementares</h3>
+              <div class="form-group">
+                <label for="quilometragem">Quilometragem (KM)</label>
+                <input
+                  type="text"
+                  id="quilometragem"
+                  placeholder="Ex: 45.000"
+                />
+              </div>
+
+              <!-- Checkbox para ativar desconto -->
+              <div class="form-group">
+                <label class="option-label">
+                  <span>Aplicar Desconto</span>
+                  <label class="switch">
+                    <input type="checkbox" id="descontoToggle" />
+                    <span class="slider"></span>
+                  </label>
+                </label>
+              </div>
+
+              <!-- Campos de valor e desconto -->
+              <div id="descontoFields" style="display: none">
+                <div class="form-group">
+                  <label for="valorMotoInput">Valor da Moto (R$)</label>
+                  <input
+                    type="text"
+                    id="valorMotoInput"
+                    class="money-input"
+                    value=""
+                    placeholder="R$ 0,00"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="valorDescontoInput">Valor do Desconto (R$)</label>
+                  <input
+                    type="text"
+                    id="valorDescontoInput"
+                    class="money-input"
+                    value=""
+                    placeholder="R$ 0,00"
+                  />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="formaPagamentoInput">Forma de Pagamento</label>
+                <input
+                  type="text"
+                  id="formaPagamentoInput"
+                  placeholder="Ex: À VISTA, PARCELADO, PIX, etc."
+                  value="À VISTA"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="valorContratoInput">Valor do Contrato (R$)</label>
+                <input
+                  type="text"
+                  id="valorContratoInput"
+                  class="money-input"
+                  placeholder="R$ 0,00"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="ipva">Situação do IPVA</label>
+                <select id="ipva">
+                  <option value="IPVA PAGO">IPVA PAGO</option>
+                  <option value="DOCUMENTAÇÃO PAGA">Documentação Paga</option>
+                  <option value="DOCUMENTAÇÃO 2025 PAGA.">
+                    DOCUMENTAÇÃO 2025 PAGA.
+                  </option>
+                  <option value="Manual">Manual</option>
+                </select>
+                <input
+                  type="text"
+                  id="ipvaManualInput"
+                  style="display: none; margin-top: 10px"
+                  placeholder="Digite o status do IPVA"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="dataContratoInput">Data do Contrato</label>
+                <input type="date" id="dataContratoInput" />
+              </div>
+
+              <div class="form-group">
+                <label for="multasInput">Multas Pendentes</label>
+                <input
+                  type="text"
+                  id="multasInput"
+                  value="SEM MULTAS"
+                  placeholder="Informe as multas pendentes"
+                />
+              </div>
+            </div>
+
+            <button class="btn btn-generate" id="generateBtn">
+              <i class="fas fa-save"></i> Salvar Contrato
+            </button>
+          </div>
         </div>
 
-        <div id="notification" class="notification">
-            Arquivo XML carregado com sucesso!
+        <div class="card">
+          <div class="card-header">
+            <i class="fas fa-file-alt"></i>
+            <h2>Prévia do Contrato</h2>
+          </div>
+          <div class="card-body">
+            <div class="contract-preview" id="contractPreview">
+              <p>
+                Carregue um arquivo XML ou ative o modo manual para visualizar o
+                contrato gerado automaticamente.
+              </p>
+            </div>
+
+            <div class="file-info" id="contractInfo" style="display: none">
+              <h4>Contrato gerado com sucesso!</h4>
+              <p>Revise o documento e faça o download.</p>
+              <button class="btn btn-download" id="downloadBtn" disabled>
+                <i class="fas fa-download"></i> Baixar Contrato (DOCX)
+              </button>
+            </div>
+          </div>
         </div>
+      </div>
+
+      <div id="notification" class="notification">
+        Arquivo XML carregado com sucesso!
+      </div>
     </div>
 
     <footer>
-        <p>Sistema de Geração de Contratos Automatizado &copy; 2023</p>
+      <p>Sistema de Geração de Contratos Automatizado &copy; 2023</p>
     </footer>
 
     <script>
-        function showNotification(message, isError = false, isInfo = false) {
-            notification.textContent = message;
-            notification.classList.remove('error', 'info');
+      function showNotification(message, isError = false, isInfo = false) {
+        const notification = document.getElementById("notification");
+        notification.textContent = message;
+        notification.classList.remove("error", "info");
 
-            if (isError) {
-                notification.classList.add('error');
-            } else if (isInfo) {
-                notification.classList.add('info');
-            } else {
-                notification.classList.remove('error', 'info');
-            }
-
-            notification.classList.add('show');
-
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
+        if (isError) {
+          notification.classList.add("error");
+        } else if (isInfo) {
+          notification.classList.add("info");
+        } else {
+          notification.classList.remove("error", "info");
         }
 
-        // Função dedicada apenas para acordar o servidor
-        async function wakeUpServer() {
-            const wakeUpUrl = 'https://gerador-contratos-backend-ybag.onrender.com/wake-up';
+        notification.classList.add("show");
 
-            try {
-                let response = await fetch(wakeUpUrl, {
-                    method: 'HEAD',
-                    mode: 'cors',
-                    cache: 'no-cache'
-                });
+        setTimeout(() => {
+          notification.classList.remove("show");
+        }, 3000);
+      }
 
-                if (!response.ok) {
-                    response = await fetch(wakeUpUrl, {
-                        method: 'GET',
-                        mode: 'cors',
-                        cache: 'no-cache'
-                    });
-                }
+      // Função dedicada apenas para acordar o servidor
+      async function wakeUpServer() {
+        const wakeUpUrl =
+          "https://gerador-contratos-backend-ybag.onrender.com/wake-up";
 
-                if (response.ok) {
-                    console.log('Servidor ativo e pronto');
-                    return true;
-                }
+        try {
+          let response = await fetch(wakeUpUrl, {
+            method: "HEAD",
+            mode: "cors",
+            cache: "no-cache",
+          });
 
-                throw new Error(`Status: ${response.status}`);
+          if (!response.ok) {
+            response = await fetch(wakeUpUrl, {
+              method: "GET",
+              mode: "cors",
+              cache: "no-cache",
+            });
+          }
 
-            } catch (error) {
-                console.warn('Servidor demorando para responder...', error);
-                await new Promise(resolve => setTimeout(resolve, 5000));
-                return wakeUpServer();
-            }
+          if (response.ok) {
+            console.log("Servidor ativo e pronto");
+            return true;
+          }
+
+          throw new Error(`Status: ${response.status}`);
+        } catch (error) {
+          console.warn("Servidor demorando para responder...", error);
+          await new Promise((resolve) => setTimeout(resolve, 5000));
+          return wakeUpServer();
         }
+      }
 
-        // Inicia o servidor silenciosamente quando a página abre
-        window.addEventListener('load', () => {
-            wakeUpServer();
-            setInterval(wakeUpServer, 10 * 60 * 1000);
+      // Inicia o servidor silenciosamente quando a página abre
+      window.addEventListener("load", () => {
+        wakeUpServer();
+        setInterval(wakeUpServer, 10 * 60 * 1000);
+      });
+
+      document.addEventListener("DOMContentLoaded", function () {
+        // Elementos DOM principais
+        const xmlUploadSection = document.getElementById("xmlUploadSection");
+        const xmlUploadArea = document.getElementById("xmlUploadArea");
+        const xmlFileInput = document.getElementById("xmlFileInput");
+        const xmlFileInfo = document.getElementById("xmlFileInfo");
+        const xmlFileName = document.getElementById("xmlFileName");
+        const xmlFileSize = document.getElementById("xmlFileSize");
+        const generateBtn = document.getElementById("generateBtn");
+        const contractPreview = document.getElementById("contractPreview");
+        const contractInfo = document.getElementById("contractInfo");
+        const downloadBtn = document.getElementById("downloadBtn");
+        const notification = document.getElementById("notification");
+        const vendedorToggle = document.getElementById("vendedorToggle");
+        const vendedorStatus = document.getElementById("vendedorStatus");
+        const veiculoInfo = document.getElementById("veiculoInfo");
+        const veiculoDetails = document.getElementById("veiculoDetails");
+        const ipvaSelect = document.getElementById("ipva");
+        const ipvaManualInput = document.getElementById("ipvaManualInput");
+        const multasInput = document.getElementById("multasInput");
+        const formaPagamentoInput = document.getElementById(
+          "formaPagamentoInput",
+        );
+        const quilometragemInput = document.getElementById("quilometragem");
+        const descontoInput = document.getElementById("valorDescontoInput");
+        const dataContratoInput = document.getElementById("dataContratoInput");
+        const valorContratoInput =
+          document.getElementById("valorContratoInput");
+
+        // Elementos do modo manual
+        const manualModeToggle = document.getElementById("manualModeToggle");
+        const manualModeSection = document.getElementById("manualModeSection");
+        const modeStatus = document.getElementById("modeStatus");
+
+        // Campos do modo manual
+        const manualVendedor = document.getElementById("manualVendedor");
+        const manualCnpjVendedor =
+          document.getElementById("manualCnpjVendedor");
+        const manualEnderecoVendedor = document.getElementById(
+          "manualEnderecoVendedor",
+        );
+        const manualComprador = document.getElementById("manualComprador");
+        const manualCpfComprador =
+          document.getElementById("manualCpfComprador");
+        const manualLogradouroComprador = document.getElementById(
+          "manualLogradouroComprador",
+        );
+        const manualNumeroComprador = document.getElementById(
+          "manualNumeroComprador",
+        );
+        const manualBairroComprador = document.getElementById(
+          "manualBairroComprador",
+        );
+        const manualCidadeComprador = document.getElementById(
+          "manualCidadeComprador",
+        );
+        const manualUfComprador = document.getElementById("manualUfComprador");
+        const manualCepComprador =
+          document.getElementById("manualCepComprador");
+        const manualTelefoneComprador = document.getElementById(
+          "manualTelefoneComprador",
+        );
+        const manualEmailComprador = document.getElementById(
+          "manualEmailComprador",
+        );
+        const manualMarca = document.getElementById("manualMarca");
+        const manualModelo = document.getElementById("manualModelo");
+        const manualCor = document.getElementById("manualCor");
+        const manualCombustivel = document.getElementById("manualCombustivel");
+        const manualAnoFab = document.getElementById("manualAnoFab");
+        const manualAnoMod = document.getElementById("manualAnoMod");
+        const manualPlaca = document.getElementById("manualPlaca");
+        const manualRenavam = document.getElementById("manualRenavam");
+        const manualChassi = document.getElementById("manualChassi");
+        const manualVendedorResponsavel = document.getElementById(
+          "manualVendedorResponsavel",
+        );
+
+        // Estado da aplicação
+        const appState = {
+          xmlData: null,
+          veiculoData: {},
+          contractData: null,
+          vendedorMode: "base",
+          aplicarDesconto: false,
+          valorMoto: 0,
+          valorDesconto: 0,
+          isMotoZero: false,
+          isManualMode: false,
+          isContractSaved: false,
+          anoAtual: new Date().getFullYear(),
+          marcasMotos: [
+            "YAMAHA",
+            "HONDA",
+            "KAWASAKI",
+            "SUZUKI",
+            "BMW",
+            "DUCATI",
+            "HARLEY DAVIDSON",
+            "ROYAL ENFIELD",
+            "KTM",
+            "TRIUMPH",
+            "APRILIA",
+            "MOTOGUZZI",
+            "BENELLI",
+            "INDIAN",
+            "DAFRA",
+            "SHINERAY",
+            "HAOJUE",
+            "MV AGUSTA",
+            "VESPA",
+            "PIAGGIO",
+            "KYMCO",
+            "SYM",
+            "BAJAJ",
+            "TVS",
+          ],
+        };
+
+        // Event Listeners principais
+        xmlUploadArea.addEventListener("click", () => xmlFileInput.click());
+        xmlFileInput.addEventListener("change", handleFileUpload);
+        generateBtn.addEventListener("click", generateContract);
+        downloadBtn.addEventListener("click", downloadContract);
+        vendedorToggle.addEventListener("change", toggleVendedorMode);
+        ipvaSelect.addEventListener("change", toggleIpvaManualInput);
+
+        // Auto-uppercase para UF
+        manualUfComprador.addEventListener("input", function () {
+          this.value = this.value.toUpperCase();
         });
 
-        document.addEventListener('DOMContentLoaded', function () {
-            // Elementos DOM principais
-            const xmlUploadSection = document.getElementById('xmlUploadSection');
-            const xmlUploadArea = document.getElementById('xmlUploadArea');
-            const xmlFileInput = document.getElementById('xmlFileInput');
-            const xmlFileInfo = document.getElementById('xmlFileInfo');
-            const xmlFileName = document.getElementById('xmlFileName');
-            const xmlFileSize = document.getElementById('xmlFileSize');
-            const generateBtn = document.getElementById('generateBtn');
-            const contractPreview = document.getElementById('contractPreview');
-            const contractInfo = document.getElementById('contractInfo');
-            const downloadBtn = document.getElementById('downloadBtn');
-            const notification = document.getElementById('notification');
-            const vendedorToggle = document.getElementById('vendedorToggle');
-            const vendedorStatus = document.getElementById('vendedorStatus');
-            const veiculoInfo = document.getElementById('veiculoInfo');
-            const veiculoDetails = document.getElementById('veiculoDetails');
-            const ipvaSelect = document.getElementById('ipva');
-            const ipvaManualInput = document.getElementById('ipvaManualInput');
-            const multasInput = document.getElementById('multasInput');
-            const formaPagamentoInput = document.getElementById('formaPagamentoInput');
-            const quilometragemInput = document.getElementById('quilometragem');
-            const descontoInput = document.getElementById('valorDescontoInput');
-            const dataContratoInput = document.getElementById('dataContratoInput');
-            const valorContratoInput = document.getElementById('valorContratoInput');
+        // Event Listeners para atualização em tempo real APENAS no modo automático
+        const updateFields = [
+          multasInput,
+          formaPagamentoInput,
+          ipvaManualInput,
+          quilometragemInput,
+          descontoInput,
+          dataContratoInput,
+          valorContratoInput,
+        ];
 
-            // Elementos do modo manual
-            const manualModeToggle = document.getElementById('manualModeToggle');
-            const manualModeSection = document.getElementById('manualModeSection');
-            const modeStatus = document.getElementById('modeStatus');
-            
-            // Campos do modo manual
-            const manualVendedor = document.getElementById('manualVendedor');
-            const manualCnpjVendedor = document.getElementById('manualCnpjVendedor');
-            const manualEnderecoVendedor = document.getElementById('manualEnderecoVendedor');
-            const manualComprador = document.getElementById('manualComprador');
-            const manualCpfComprador = document.getElementById('manualCpfComprador');
-            const manualEnderecoComprador = document.getElementById('manualEnderecoComprador');
-            const manualCidadeComprador = document.getElementById('manualCidadeComprador');
-            const manualCepComprador = document.getElementById('manualCepComprador');
-            const manualTelefoneComprador = document.getElementById('manualTelefoneComprador');
-            const manualEmailComprador = document.getElementById('manualEmailComprador');
-            const manualMarca = document.getElementById('manualMarca');
-            const manualModelo = document.getElementById('manualModelo');
-            const manualCor = document.getElementById('manualCor');
-            const manualCombustivel = document.getElementById('manualCombustivel');
-            const manualAnoFab = document.getElementById('manualAnoFab');
-            const manualAnoMod = document.getElementById('manualAnoMod');
-            const manualPlaca = document.getElementById('manualPlaca');
-            const manualRenavam = document.getElementById('manualRenavam');
-            const manualChassi = document.getElementById('manualChassi');
-            const manualVendedorResponsavel = document.getElementById('manualVendedorResponsavel');
-
-            // Estado da aplicação
-            const appState = {
-                xmlData: null,
-                veiculoData: {},
-                contractData: null,
-                vendedorMode: 'base',
-                aplicarDesconto: false,
-                valorMoto: 0,
-                valorDesconto: 0,
-                isMotoZero: false,
-                isManualMode: false,
-                anoAtual: new Date().getFullYear(),
-                marcasMotos: [
-                    "YAMAHA", "HONDA", "KAWASAKI", "SUZUKI", "BMW",
-                    "DUCATI", "HARLEY DAVIDSON", "ROYAL ENFIELD", "KTM",
-                    "TRIUMPH", "APRILIA", "MOTOGUZZI", "BENELLI", "INDIAN",
-                    "DAFRA", "SHINERAY", "HAOJUE", "MV AGUSTA",
-                    "VESPA", "PIAGGIO", "KYMCO", "SYM", "BAJAJ", "TVS"
-                ]
-            };
-
-            // Event Listeners principais
-            xmlUploadArea.addEventListener('click', () => xmlFileInput.click());
-            xmlFileInput.addEventListener('change', handleFileUpload);
-            generateBtn.addEventListener('click', generateContract);
-            downloadBtn.addEventListener('click', downloadContract);
-            vendedorToggle.addEventListener('change', toggleVendedorMode);
-            ipvaSelect.addEventListener('change', toggleIpvaManualInput);
-            
-            // Event Listeners para atualização em tempo real
-            const updateFields = [multasInput, formaPagamentoInput, ipvaManualInput, 
-                                quilometragemInput, descontoInput, dataContratoInput,
-                                valorContratoInput];
-            
-            updateFields.forEach(field => {
-                if (field) field.addEventListener('input', updateContractIfExists);
-            });
-
-            // Event Listeners para campos do modo manual
-            const manualFields = [
-                manualVendedor, manualCnpjVendedor, manualEnderecoVendedor,
-                manualComprador, manualCpfComprador, manualEnderecoComprador,
-                manualCidadeComprador, manualCepComprador, manualTelefoneComprador,
-                manualEmailComprador, manualMarca, manualModelo, manualCor,
-                manualCombustivel, manualAnoFab, manualAnoMod, manualPlaca,
-                manualRenavam, manualChassi, manualVendedorResponsavel
-            ];
-            
-            manualFields.forEach(field => {
-                field.addEventListener('input', updateContractIfExists);
-            });
-
-            // Toggle do modo manual
-            manualModeToggle.addEventListener('change', toggleManualMode);
-
-            // Drag and drop
-            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-                xmlUploadArea.addEventListener(eventName, preventDefaults, false);
-            });
-
-            ['dragenter', 'dragover'].forEach(eventName => {
-                xmlUploadArea.addEventListener(eventName, () => {
-                    xmlUploadArea.classList.add('dragover');
-                }, false);
-            });
-
-            ['dragleave', 'drop'].forEach(eventName => {
-                xmlUploadArea.addEventListener(eventName, () => {
-                    xmlUploadArea.classList.remove('dragover');
-                }, false);
-            });
-
-            // Listener para o toggle "Moto Zero"
-            document.getElementById('motoZeroToggle').addEventListener('change', function () {
-                appState.isMotoZero = this.checked;
-                const vendedorOption = document.querySelector('.vendedor-option');
-
-                if (this.checked) {
-                    vendedorOption.classList.add('moto-zero');
-                } else {
-                    vendedorOption.classList.remove('moto-zero');
-                }
-
-                if (appState.xmlData) generateContract();
-            });
-
-            xmlUploadArea.addEventListener('drop', handleDrop, false);
-
-            // Toggle do desconto
-            document.getElementById('descontoToggle').addEventListener('change', function () {
-                appState.aplicarDesconto = this.checked;
-                document.getElementById('descontoFields').style.display = this.checked ? 'block' : 'none';
-                updateValores();
-            });
-
-            // Formatação monetária
-            document.querySelectorAll('.money-input').forEach(input => {
-                input.addEventListener('focus', function () {
-                    this.value = this.value.replace(/[^\d]/g, '');
-                    this.setSelectionRange(this.value.length, this.value.length);
-                });
-
-                input.addEventListener('input', function () {
-                    formatarMoedaEmTempoReal(this);
-                });
-
-                input.addEventListener('blur', function () {
-                    formatarMoedaFinal(this);
-                    updateValores();
-                });
-            });
-
-            // Função para alternar entre modo manual e automático
-            function toggleManualMode() {
-                appState.isManualMode = this.checked;
-                
-                if (appState.isManualMode) {
-                    // Ativar modo manual
-                    xmlUploadSection.style.display = 'none';
-                    manualModeSection.classList.add('active');
-                    modeStatus.textContent = 'Atualmente: Modo Manual (preencha os dados abaixo)';
-                    modeStatus.parentElement.style.backgroundColor = '#e8f5e9';
-                    showNotification('Modo Manual ativado. Preencha os dados do contrato.', false, true);
-                    
-                    // Configurar data atual como padrão
-                    const today = new Date().toISOString().split('T')[0];
-                    dataContratoInput.value = today;
-                    valorContratoInput.value = 'R$ 0,00';
-                    
-                } else {
-                    // Ativar modo automático
-                    xmlUploadSection.style.display = 'block';
-                    manualModeSection.classList.remove('active');
-                    modeStatus.textContent = 'Atualmente: Modo Automático (carregue um XML)';
-                    modeStatus.parentElement.style.backgroundColor = '#fff3cd';
-                    showNotification('Modo Automático ativado. Carregue um arquivo XML.', false, true);
-                }
-                
-                // Limpar dados anteriores
-                if (!appState.isManualMode) {
-                    appState.xmlData = null;
-                    appState.veiculoData = {};
-                    contractInfo.style.display = 'none';
-                    veiculoInfo.style.display = 'none';
-                    xmlFileInfo.style.display = 'none';
-                    contractPreview.innerHTML = '<p>Carregue um arquivo XML para visualizar o contrato gerado automaticamente.</p>';
-                }
-            }
-
-            // Funções principais
-            function handleFileUpload() {
-                if (xmlFileInput.files.length > 0) {
-                    const file = xmlFileInput.files[0];
-                    appState.isMotoZero = document.getElementById('motoZeroToggle').checked;
-
-                    if (file.type === 'text/xml' || file.name.endsWith('.xml')) {
-                        const reader = new FileReader();
-
-                        reader.onload = function (e) {
-                            try {
-                                const parser = new DOMParser();
-                                const xmlDoc = parser.parseFromString(e.target.result, "text/xml");
-
-                                if (appState.isMotoZero) {
-                                    appState.xmlData = extractXmlDataMotoZero(xmlDoc);
-                                    appState.veiculoData = extractVeiculoDataMotoZero(xmlDoc);
-                                } else {
-                                    appState.xmlData = extractXmlData(xmlDoc);
-                                    appState.veiculoData = extractVeiculoData(xmlDoc);
-                                }
-
-                                xmlFileName.textContent = file.name;
-                                xmlFileSize.textContent = formatFileSize(file.size);
-                                xmlFileInfo.style.display = 'block';
-
-                                displayVeiculoData(appState.veiculoData);
-                                formaPagamentoInput.value = appState.xmlData.formaPagamento;
-                                
-                                // Preencher valor do contrato automaticamente
-                                const valor = appState.xmlData.produto.valor;
-                                valorContratoInput.value = formatarNumeroParaMoeda(valor);
-                                
-                                // Configurar data
-                                dataContratoInput.value = appState.xmlData.dataEmissao;
-
-                                showNotification('XML processado com sucesso! Os dados foram extraídos.');
-                                generateContract();
-                            } catch (error) {
-                                showNotification('Erro ao processar o XML: ' + error.message, true);
-                            }
-                        };
-
-                        reader.readAsText(file);
-                    } else {
-                        showNotification('Por favor, selecione um arquivo XML válido.', true);
-                    }
-                }
-            }
-
-            function generateContract() {
-                let contractData;
-                
-                if (appState.isManualMode) {
-                    // Validar campos obrigatórios no modo manual
-                    if (!validateManualFields()) {
-                        showNotification('Preencha todos os campos obrigatórios do modo manual.', true);
-                        return;
-                    }
-                    
-                    contractData = generateContractDataFromManual();
-                } else {
-                    // Modo automático com XML
-                    if (!appState.xmlData) {
-                        showNotification('Por favor, carregue um XML primeiro.', true);
-                        return;
-                    }
-                    
-                    contractData = generateContractDataFromXML();
-                }
-
-                appState.contractData = contractData;
-                contractPreview.innerHTML = generateContractHTML(appState.contractData);
-                contractInfo.style.display = 'block';
-                showNotification('CONTRATO GERADO COM SUCESSO!');
-            }
-
-            function generateContractDataFromManual() {
-                const quilometragem = quilometragemInput.value || '45.000';
-                const valorContrato = converterParaNumero(valorContratoInput.value);
-                
-                const ipvaValue = ipvaSelect.value;
-                const ipvaManual = ipvaManualInput.value;
-                const multas = multasInput.value || 'SEM MULTAS';
-                const formaPagamento = formaPagamentoInput.value || 'À VISTA';
-                
-                // Calcular desconto se aplicável
-                let valorFinal = valorContrato;
-                let descontoValor = 0;
-                
-                if (appState.aplicarDesconto) {
-                    appState.valorMoto = converterParaNumero(document.getElementById('valorMotoInput').value);
-                    appState.valorDesconto = converterParaNumero(document.getElementById('valorDescontoInput').value);
-                    valorFinal = appState.valorMoto - appState.valorDesconto;
-                    descontoValor = appState.valorDesconto;
-                }
-
-                let ipvaTexto;
-                if (ipvaValue === 'Manual') {
-                    ipvaTexto = ipvaManual.toUpperCase();
-                } else if (ipvaValue === 'IPVA PAGO') {
-                    ipvaTexto = `IPVA ${appState.anoAtual} PAGO`;
-                } else if (ipvaValue === 'DOCUMENTAÇÃO PAGA') {
-                    ipvaTexto = `${appState.anoAtual} PAGO`;
-                } else {
-                    ipvaTexto = ipvaValue;
-                }
-
-                // Obtém a data selecionada
-                const dataSelecionada = dataContratoInput.value || new Date().toISOString().split('T')[0];
-                const [ano, mes, dia] = dataSelecionada.split('-');
-                const dataFormatada = `${dia}/${mes}/${ano}`;
-                const mesExtenso = getMonthName(dataFormatada);
-
-                return {
-                    vendedor: manualVendedor.value.toUpperCase(),
-                    cnpjVendedor: formatCnpj(manualCnpjVendedor.value.replace(/\D/g, '')),
-                    enderecoVendedor: manualEnderecoVendedor.value.toUpperCase(),
-                    comprador: manualComprador.value.toUpperCase(),
-                    cpfComprador: formatCpf(manualCpfComprador.value.replace(/\D/g, '')),
-                    enderecoComprador: manualEnderecoComprador.value.toUpperCase(),
-                    cidadeComprador: manualCidadeComprador.value.split('/')[0]?.toUpperCase() || '',
-                    ufComprador: manualCidadeComprador.value.split('/')[1]?.toUpperCase() || '',
-                    cepComprador: formatCep(manualCepComprador.value.replace(/\D/g, '')),
-                    telefoneComprador: formatTelefone(manualTelefoneComprador.value.replace(/\D/g, '')),
-                    emailComprador: manualEmailComprador.value.toUpperCase(),
-                    marca: manualMarca.value.toUpperCase(),
-                    modelo: manualModelo.value.toUpperCase(),
-                    cor: manualCor.value.toUpperCase(),
-                    combustivel: manualCombustivel.value.toUpperCase(),
-                    anoFab: manualAnoFab.value,
-                    anoMod: manualAnoMod.value,
-                    placa: manualPlaca.value.toUpperCase(),
-                    renavam: manualRenavam.value,
-                    chassi: manualChassi.value.toUpperCase(),
-                    valor: appState.aplicarDesconto ? 
-                        appState.valorMoto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) :
-                        valorContrato.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                    desconto: descontoValor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                    valorFinal: valorFinal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                    formaPagamento: formaPagamento.toUpperCase(),
-                    dataEmissao: dataFormatada,
-                    vendedorResponsavel: manualVendedorResponsavel.value.toUpperCase() || "BRUNA LOBATO",
-                    quilometragem: quilometragem,
-                    ipva: ipvaTexto,
-                    multas: multas.toUpperCase(),
-                    dia: dia,
-                    mes: mesExtenso,
-                    ano: ano
-                };
-            }
-
-            function generateContractDataFromXML() {
-                const quilometragem = quilometragemInput.value || '45.000';
-                const valorContrato = converterParaNumero(valorContratoInput.value);
-                
-                const ipvaValue = ipvaSelect.value;
-                const ipvaManual = ipvaManualInput.value;
-                const multas = multasInput.value || 'SEM MULTAS';
-                const formaPagamento = formaPagamentoInput.value || appState.xmlData.formaPagamento;
-                
-                let descontoValor = 0;
-                let valorFinal = valorContrato;
-                
-                if (appState.aplicarDesconto) {
-                    appState.valorMoto = converterParaNumero(document.getElementById('valorMotoInput').value);
-                    appState.valorDesconto = converterParaNumero(document.getElementById('valorDescontoInput').value);
-                    valorFinal = appState.valorMoto - appState.valorDesconto;
-                    descontoValor = appState.valorDesconto;
-                }
-
-                let ipvaTexto;
-                if (ipvaValue === 'Manual') {
-                    ipvaTexto = ipvaManual.toUpperCase();
-                } else if (ipvaValue === 'IPVA PAGO') {
-                    ipvaTexto = `IPVA ${appState.anoAtual} PAGO`;
-                } else if (ipvaValue === 'DOCUMENTAÇÃO PAGA') {
-                    ipvaTexto = `${appState.anoAtual} PAGO`;
-                } else {
-                    ipvaTexto = ipvaValue;
-                }
-
-                const { marca, modelo } = extrairMarcaModelo(appState.xmlData.produto.descricao);
-
-                const dataSelecionada = dataContratoInput.value || appState.xmlData.dataEmissao;
-                const [ano, mes, dia] = dataSelecionada.split('-');
-                const dataFormatada = `${dia}/${mes}/${ano}`;
-                const mesExtenso = getMonthName(dataFormatada);
-
-                return {
-                    vendedor: appState.vendedorMode === 'base' ? 'MOTOLOB LTDA' : appState.xmlData.emitente.nome,
-                    cnpjVendedor: appState.vendedorMode === 'base' ? '42.676.954/0001-69' : formatCnpj(appState.xmlData.emitente.cnpj),
-                    enderecoVendedor: appState.vendedorMode === 'base' ?
-                        'AVENIDA MARECHAL CAMPOS, Nº 459, LOJA 01, BAIRRO DE LOURDES, VITÓRIA/ES' :
-                        `${appState.xmlData.emitente.endereco.logradouro}, ${appState.xmlData.emitente.endereco.numero}, ${appState.xmlData.emitente.endereco.bairro}, ${appState.xmlData.emitente.endereco.cidade}/${appState.xmlData.emitente.endereco.uf}`,
-                    comprador: appState.xmlData.comprador.nome,
-                    cpfComprador: formatCpf(appState.xmlData.comprador.cpf),
-                    enderecoComprador: `${appState.xmlData.comprador.endereco.logradouro}, ${appState.xmlData.comprador.endereco.numero}, ${appState.xmlData.comprador.endereco.bairro}`,
-                    cidadeComprador: appState.xmlData.comprador.endereco.cidade,
-                    ufComprador: appState.xmlData.comprador.endereco.uf,
-                    cepComprador: formatCep(appState.xmlData.comprador.endereco.cep),
-                    telefoneComprador: formatTelefone(appState.xmlData.comprador.telefone),
-                    emailComprador: appState.xmlData.comprador.email,
-                    marca: appState.veiculoData.marca || marca,
-                    modelo: appState.veiculoData.modelo || modelo,
-                    cor: appState.veiculoData.cor,
-                    combustivel: appState.veiculoData.combustivel,
-                    anoFab: extrairAnoFab(appState.xmlData.produto.descricao) || 'NÃO ESPECIFICADO',
-                    anoMod: extrairAnoMod(appState.xmlData.produto.descricao) || 'NÃO ESPECIFICADO',
-                    placa: appState.veiculoData.placa,
-                    renavam: appState.veiculoData.renavam,
-                    chassi: appState.veiculoData.chassi,
-                    valor: appState.aplicarDesconto ?
-                        appState.valorMoto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) :
-                        valorContrato.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                    desconto: descontoValor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                    valorFinal: valorFinal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                    formaPagamento: formaPagamento,
-                    dataEmissao: dataFormatada,
-                    vendedorResponsavel: extrairVendedorResponsavel(appState.xmlData) || "BRUNA LOBATO",
-                    quilometragem: quilometragem,
-                    ipva: ipvaTexto,
-                    multas: multas.toUpperCase(),
-                    dia: dia,
-                    mes: mesExtenso,
-                    ano: ano
-                };
-            }
-
-            async function downloadContract() {
-                if (!appState.contractData) {
-                    showNotification('Por favor, gere o contrato primeiro.', true);
-                    return;
-                }
-
-                showNotification('GERANDO CONTRATO EM DOCX...');
-
-                try {
-                    const response = await fetch('https://gerador-contratos-backend-ybag.onrender.com/gerar-contrato', {
-                        method: 'POST',
-                        mode: 'cors',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        },
-                        body: JSON.stringify(appState.contractData)
-                    });
-
-                    if (!response.ok) {
-                        const error = await response.json();
-                        throw new Error(error.erro || 'Erro no servidor');
-                    }
-
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    const nomeComprador = appState.contractData.comprador.replace(/ /g, '_').toUpperCase();
-                    a.download = `${nomeComprador}.docx`;
-                    a.href = url;
-                    document.body.appendChild(a);
-                    a.click();
-                    a.remove();
-
-                    showNotification('CONTRATO BAIXADO COM SUCESSO!');
-                } catch (error) {
-                    console.error('Erro:', error);
-                    showNotification('Erro ao gerar contrato: ' + error.message, true);
-                }
-            }
-
-            // Funções auxiliares
-            function validateManualFields() {
-                const requiredFields = [
-                    { field: manualComprador, name: 'Nome do Comprador' },
-                    { field: manualCpfComprador, name: 'CPF do Comprador' },
-                    { field: manualEnderecoComprador, name: 'Endereço do Comprador' },
-                    { field: manualCidadeComprador, name: 'Cidade/UF do Comprador' },
-                    { field: manualMarca, name: 'Marca do Veículo' },
-                    { field: manualModelo, name: 'Modelo do Veículo' },
-                    { field: valorContratoInput, name: 'Valor do Contrato' }
-                ];
-
-                for (const required of requiredFields) {
-                    if (!required.field.value.trim()) {
-                        showNotification(`Campo obrigatório: ${required.name}`, true);
-                        required.field.focus();
-                        return false;
-                    }
-                }
-
-                // Validar CPF
-                const cpf = manualCpfComprador.value.replace(/\D/g, '');
-                if (cpf.length !== 11) {
-                    showNotification('CPF inválido. Deve conter 11 dígitos.', true);
-                    manualCpfComprador.focus();
-                    return false;
-                }
-
-                return true;
-            }
-
-            function toggleVendedorMode() {
-                appState.vendedorMode = this.checked ? 'nota' : 'base';
-                vendedorStatus.textContent = `Atualmente: ${this.checked ? 'Vendedor da nota será utilizado' : 'Vendedor base será utilizado'}`;
-                vendedorStatus.parentElement.className = this.checked ? 'vendedor-option vendedor-nota' : 'vendedor-option vendedor-base';
-                if (appState.xmlData && !appState.isManualMode) generateContract();
-            }
-
-            function toggleIpvaManualInput() {
-                ipvaManualInput.style.display = this.value === 'Manual' ? 'block' : 'none';
+        updateFields.forEach((field) => {
+          if (field)
+            field.addEventListener("input", function () {
+              if (!appState.isManualMode) {
                 updateContractIfExists();
+              }
+            });
+        });
+
+        // Event Listeners para campos do modo manual - SEM auto-save
+        const manualFields = [
+          manualVendedor,
+          manualCnpjVendedor,
+          manualEnderecoVendedor,
+          manualComprador,
+          manualCpfComprador,
+          manualLogradouroComprador,
+          manualNumeroComprador,
+          manualBairroComprador,
+          manualCidadeComprador,
+          manualUfComprador,
+          manualCepComprador,
+          manualTelefoneComprador,
+          manualEmailComprador,
+          manualMarca,
+          manualModelo,
+          manualCor,
+          manualCombustivel,
+          manualAnoFab,
+          manualAnoMod,
+          manualPlaca,
+          manualRenavam,
+          manualChassi,
+          manualVendedorResponsavel,
+        ];
+
+        manualFields.forEach((field) => {
+          field.addEventListener("input", function () {
+            // No modo manual, apenas atualiza o botão de download
+            checkIfCanDownload();
+          });
+        });
+
+        // Toggle do modo manual
+        manualModeToggle.addEventListener("change", toggleManualMode);
+
+        // Drag and drop
+        ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+          xmlUploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        ["dragenter", "dragover"].forEach((eventName) => {
+          xmlUploadArea.addEventListener(
+            eventName,
+            () => {
+              xmlUploadArea.classList.add("dragover");
+            },
+            false,
+          );
+        });
+
+        ["dragleave", "drop"].forEach((eventName) => {
+          xmlUploadArea.addEventListener(
+            eventName,
+            () => {
+              xmlUploadArea.classList.remove("dragover");
+            },
+            false,
+          );
+        });
+
+        // Listener para o toggle "Moto Zero"
+        document
+          .getElementById("motoZeroToggle")
+          .addEventListener("change", function () {
+            appState.isMotoZero = this.checked;
+            const vendedorOption = document.querySelector(".vendedor-option");
+
+            if (this.checked) {
+              vendedorOption.classList.add("moto-zero");
+            } else {
+              vendedorOption.classList.remove("moto-zero");
             }
 
-            function updateContractIfExists() {
-                if (appState.xmlData || appState.isManualMode) generateContract();
-            }
+            if (appState.xmlData && !appState.isManualMode) generateContract();
+          });
 
-            function preventDefaults(e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
+        xmlUploadArea.addEventListener("drop", handleDrop, false);
 
-            function handleDrop(e) {
-                const dt = e.dataTransfer;
-                const files = dt.files;
-                xmlFileInput.files = files;
-                handleFileUpload();
-            }
+        // Toggle do desconto
+        document
+          .getElementById("descontoToggle")
+          .addEventListener("change", function () {
+            appState.aplicarDesconto = this.checked;
+            document.getElementById("descontoFields").style.display = this
+              .checked
+              ? "block"
+              : "none";
+            if (!appState.isManualMode) updateValores();
+          });
 
-            // Funções de formatação monetária
-            function formatarMoedaEmTempoReal(elemento) {
-                let valor = elemento.value.replace(/\D/g, '');
+        // Formatação monetária
+        document.querySelectorAll(".money-input").forEach((input) => {
+          input.addEventListener("focus", function () {
+            this.value = this.value.replace(/[^\d]/g, "");
+            this.setSelectionRange(this.value.length, this.value.length);
+          });
 
-                while (valor.length < 3) {
-                    valor = '0' + valor;
+          input.addEventListener("input", function () {
+            formatarMoedaEmTempoReal(this);
+            if (!appState.isManualMode) updateValores();
+          });
+
+          input.addEventListener("blur", function () {
+            formatarMoedaFinal(this);
+            if (!appState.isManualMode) updateValores();
+          });
+        });
+
+        // Função para alternar entre modo manual e automático
+        function toggleManualMode() {
+          appState.isManualMode = this.checked;
+          appState.isContractSaved = false;
+          downloadBtn.disabled = true;
+
+          if (appState.isManualMode) {
+            // Ativar modo manual
+            xmlUploadSection.style.display = "none";
+            manualModeSection.classList.add("active");
+            modeStatus.textContent =
+              "Atualmente: Modo Manual (preencha os dados abaixo)";
+            modeStatus.parentElement.style.backgroundColor = "#e8f5e9";
+            showNotification(
+              "Modo Manual ativado. Preencha os dados do contrato.",
+              false,
+              true,
+            );
+
+            // Configurar data atual como padrão
+            const today = new Date().toISOString().split("T")[0];
+            dataContratoInput.value = today;
+            valorContratoInput.value = "R$ 0,00";
+
+            // Preencher anos nos selects
+            populateYearSelects();
+
+            // Mudar texto do botão
+            generateBtn.innerHTML =
+              '<i class="fas fa-save"></i> Salvar Contrato';
+          } else {
+            // Ativar modo automático
+            xmlUploadSection.style.display = "block";
+            manualModeSection.classList.remove("active");
+            modeStatus.textContent =
+              "Atualmente: Modo Automático (carregue um XML)";
+            modeStatus.parentElement.style.backgroundColor = "#fff3cd";
+            showNotification(
+              "Modo Automático ativado. Carregue um arquivo XML.",
+              false,
+              true,
+            );
+
+            // Mudar texto do botão de volta
+            generateBtn.innerHTML =
+              '<i class="fas fa-cogs"></i> Gerar Contrato';
+          }
+
+          // Limpar dados anteriores
+          if (!appState.isManualMode) {
+            appState.xmlData = null;
+            appState.veiculoData = {};
+            appState.isContractSaved = false;
+            contractInfo.style.display = "none";
+            veiculoInfo.style.display = "none";
+            xmlFileInfo.style.display = "none";
+            contractPreview.innerHTML =
+              "<p>Carregue um arquivo XML para visualizar o contrato gerado automaticamente.</p>";
+            downloadBtn.disabled = true;
+          } else {
+            contractPreview.innerHTML =
+              '<p>Preencha os dados do contrato e clique em "Salvar Contrato" para visualizar.</p>';
+            contractInfo.style.display = "none";
+          }
+        }
+
+        // Preencher os selects de ano
+        function populateYearSelects() {
+          const anoAtual = new Date().getFullYear();
+          const anoMaximo = anoAtual + 1;
+          const anoMinimo = 2020;
+
+          // Limpar selects
+          manualAnoFab.innerHTML = "";
+          manualAnoMod.innerHTML = "";
+
+          // Adicionar opção vazia
+          manualAnoFab.innerHTML = '<option value="">Selecione...</option>';
+          manualAnoMod.innerHTML = '<option value="">Selecione...</option>';
+
+          // Preencher com anos
+          for (let ano = anoMaximo; ano >= anoMinimo; ano--) {
+            manualAnoFab.innerHTML += `<option value="${ano}">${ano}</option>`;
+            manualAnoMod.innerHTML += `<option value="${ano}">${ano}</option>`;
+          }
+        }
+
+        // Verificar se pode habilitar o botão de download
+        function checkIfCanDownload() {
+          if (!appState.isContractSaved) {
+            downloadBtn.disabled = true;
+            return;
+          }
+
+          // Verificar se todos os campos obrigatórios estão preenchidos
+          const requiredFields = [
+            manualComprador,
+            manualCpfComprador,
+            manualLogradouroComprador,
+            manualNumeroComprador,
+            manualBairroComprador,
+            manualCidadeComprador,
+            manualUfComprador,
+            manualMarca,
+            manualModelo,
+            valorContratoInput,
+            manualAnoFab,
+            manualAnoMod,
+          ];
+
+          const allFilled = requiredFields.every((field) => {
+            return field.value && field.value.trim() !== "";
+          });
+
+          downloadBtn.disabled = !allFilled;
+        }
+
+        // Funções principais
+        function handleFileUpload() {
+          if (xmlFileInput.files.length > 0) {
+            const file = xmlFileInput.files[0];
+            appState.isMotoZero =
+              document.getElementById("motoZeroToggle").checked;
+
+            if (file.type === "text/xml" || file.name.endsWith(".xml")) {
+              const reader = new FileReader();
+
+              reader.onload = function (e) {
+                try {
+                  const parser = new DOMParser();
+                  const xmlDoc = parser.parseFromString(
+                    e.target.result,
+                    "text/xml",
+                  );
+
+                  if (appState.isMotoZero) {
+                    appState.xmlData = extractXmlDataMotoZero(xmlDoc);
+                    appState.veiculoData = extractVeiculoDataMotoZero(xmlDoc);
+                  } else {
+                    appState.xmlData = extractXmlData(xmlDoc);
+                    appState.veiculoData = extractVeiculoData(xmlDoc);
+                  }
+
+                  xmlFileName.textContent = file.name;
+                  xmlFileSize.textContent = formatFileSize(file.size);
+                  xmlFileInfo.style.display = "block";
+
+                  displayVeiculoData(appState.veiculoData);
+                  formaPagamentoInput.value = appState.xmlData.formaPagamento;
+
+                  // Preencher valor do contrato automaticamente
+                  const valor = appState.xmlData.produto.valor;
+                  valorContratoInput.value = formatarNumeroParaMoeda(valor);
+
+                  // Configurar data
+                  dataContratoInput.value = appState.xmlData.dataEmissao;
+
+                  showNotification(
+                    "XML processado com sucesso! Os dados foram extraídos.",
+                  );
+
+                  // Gerar contrato automaticamente
+                  if (!appState.isManualMode) {
+                    generateContract();
+                  }
+                } catch (error) {
+                  showNotification(
+                    "Erro ao processar o XML: " + error.message,
+                    true,
+                  );
                 }
+              };
 
-                const parteInteira = valor.slice(0, -2).replace(/^0+/, '') || '0';
-                const centavos = valor.slice(-2);
-                const parteInteiraFormatada = parteInteira.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+              reader.readAsText(file);
+            } else {
+              showNotification(
+                "Por favor, selecione um arquivo XML válido.",
+                true,
+              );
+            }
+          }
+        }
 
-                elemento.value = `R$ ${parteInteiraFormatada},${centavos}`;
+        function generateContract() {
+          let contractData;
 
-                const cursorPos = elemento.selectionStart;
-                if (cursorPos < 3) {
-                    elemento.setSelectionRange(4, 4);
-                }
+          if (appState.isManualMode) {
+            // Validar campos obrigatórios no modo manual
+            if (!validateManualFields()) {
+              showNotification(
+                "Preencha todos os campos obrigatórios do modo manual.",
+                true,
+              );
+              return;
             }
 
-            function formatarMoedaFinal(elemento) {
-                let valor = elemento.value.replace(/\D/g, '');
-
-                if (valor === '') valor = '000';
-                while (valor.length < 3) {
-                    valor = '0' + valor;
-                }
-
-                const parteInteira = valor.slice(0, -2).replace(/^0+/, '') || '0';
-                const centavos = valor.slice(-2);
-                const parteInteiraFormatada = parteInteira.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-
-                elemento.value = `R$ ${parteInteiraFormatada},${centavos}`;
+            contractData = generateContractDataFromManual();
+            appState.isContractSaved = true;
+            showNotification(
+              "CONTRATO SALVO COM SUCESSO! Agora você pode fazer o download.",
+            );
+          } else {
+            // Modo automático com XML
+            if (!appState.xmlData) {
+              showNotification("Por favor, carregue um XML primeiro.", true);
+              return;
             }
 
-            function formatarNumeroParaMoeda(numero) {
-                return numero.toLocaleString('pt-BR', {
-                    style: 'currency',
-                    currency: 'BRL'
-                });
+            contractData = generateContractDataFromXML();
+            appState.isContractSaved = true;
+            showNotification("CONTRATO GERADO COM SUCESSO!");
+          }
+
+          appState.contractData = contractData;
+          contractPreview.innerHTML = generateContractHTML(
+            appState.contractData,
+          );
+          contractInfo.style.display = "block";
+
+          // Habilitar botão de download se válido
+          checkIfCanDownload();
+        }
+
+        function generateContractDataFromManual() {
+          const quilometragem = quilometragemInput.value || "45.000";
+          const valorContrato = converterParaNumero(valorContratoInput.value);
+
+          const ipvaValue = ipvaSelect.value;
+          const ipvaManual = ipvaManualInput.value;
+          const multas = multasInput.value || "SEM MULTAS";
+          const formaPagamento = formaPagamentoInput.value || "À VISTA";
+
+          // Calcular desconto se aplicável
+          let valorFinal = valorContrato;
+          let descontoValor = 0;
+
+          if (appState.aplicarDesconto) {
+            appState.valorMoto = converterParaNumero(
+              document.getElementById("valorMotoInput").value,
+            );
+            appState.valorDesconto = converterParaNumero(
+              document.getElementById("valorDescontoInput").value,
+            );
+            valorFinal = appState.valorMoto - appState.valorDesconto;
+            descontoValor = appState.valorDesconto;
+          }
+
+          let ipvaTexto;
+          if (ipvaValue === "Manual") {
+            ipvaTexto = ipvaManual.toUpperCase();
+          } else if (ipvaValue === "IPVA PAGO") {
+            ipvaTexto = `IPVA ${appState.anoAtual} PAGO`;
+          } else if (ipvaValue === "DOCUMENTAÇÃO PAGA") {
+            ipvaTexto = `${appState.anoAtual} PAGO`;
+          } else {
+            ipvaTexto = ipvaValue;
+          }
+
+          // Obtém a data selecionada
+          const dataSelecionada =
+            dataContratoInput.value || new Date().toISOString().split("T")[0];
+          const [ano, mes, dia] = dataSelecionada.split("-");
+          const dataFormatada = `${dia}/${mes}/${ano}`;
+          const mesExtenso = getMonthName(dataFormatada);
+
+          // Montar endereço completo a partir dos campos separados
+          const enderecoCompleto = `${manualLogradouroComprador.value.toUpperCase()}, ${manualNumeroComprador.value}, ${manualBairroComprador.value.toUpperCase()}`;
+
+          return {
+            vendedor: manualVendedor.value.toUpperCase(),
+            cnpjVendedor: formatCnpj(
+              manualCnpjVendedor.value.replace(/\D/g, ""),
+            ),
+            enderecoVendedor: manualEnderecoVendedor.value.toUpperCase(),
+            comprador: manualComprador.value.toUpperCase(),
+            cpfComprador: formatCpf(
+              manualCpfComprador.value.replace(/\D/g, ""),
+            ),
+            enderecoComprador: enderecoCompleto,
+            cidadeComprador: manualCidadeComprador.value.toUpperCase(),
+            ufComprador: manualUfComprador.value.toUpperCase(),
+            cepComprador: formatCep(
+              manualCepComprador.value.replace(/\D/g, ""),
+            ),
+            telefoneComprador: formatTelefone(
+              manualTelefoneComprador.value.replace(/\D/g, ""),
+            ),
+            emailComprador: manualEmailComprador.value.toUpperCase(),
+            marca: manualMarca.value.toUpperCase(),
+            modelo: manualModelo.value.toUpperCase(),
+            cor: manualCor.value.toUpperCase(),
+            combustivel: manualCombustivel.value.toUpperCase(),
+            anoFab: manualAnoFab.value,
+            anoMod: manualAnoMod.value,
+            placa: manualPlaca.value.toUpperCase(),
+            renavam: manualRenavam.value,
+            chassi: manualChassi.value.toUpperCase(),
+            valor: appState.aplicarDesconto
+              ? appState.valorMoto.toLocaleString("pt-BR", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })
+              : valorContrato.toLocaleString("pt-BR", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }),
+            desconto: descontoValor.toLocaleString("pt-BR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }),
+            valorFinal: valorFinal.toLocaleString("pt-BR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }),
+            formaPagamento: formaPagamento.toUpperCase(),
+            dataEmissao: dataFormatada,
+            vendedorResponsavel:
+              manualVendedorResponsavel.value.toUpperCase() || "BRUNA LOBATO",
+            quilometragem: quilometragem,
+            ipva: ipvaTexto,
+            multas: multas.toUpperCase(),
+            dia: dia,
+            mes: mesExtenso,
+            ano: ano,
+          };
+        }
+
+        function generateContractDataFromXML() {
+          const quilometragem = quilometragemInput.value || "45.000";
+          const valorContrato = converterParaNumero(valorContratoInput.value);
+
+          const ipvaValue = ipvaSelect.value;
+          const ipvaManual = ipvaManualInput.value;
+          const multas = multasInput.value || "SEM MULTAS";
+          const formaPagamento =
+            formaPagamentoInput.value || appState.xmlData.formaPagamento;
+
+          let descontoValor = 0;
+          let valorFinal = valorContrato;
+
+          if (appState.aplicarDesconto) {
+            appState.valorMoto = converterParaNumero(
+              document.getElementById("valorMotoInput").value,
+            );
+            appState.valorDesconto = converterParaNumero(
+              document.getElementById("valorDescontoInput").value,
+            );
+            valorFinal = appState.valorMoto - appState.valorDesconto;
+            descontoValor = appState.valorDesconto;
+          }
+
+          let ipvaTexto;
+          if (ipvaValue === "Manual") {
+            ipvaTexto = ipvaManual.toUpperCase();
+          } else if (ipvaValue === "IPVA PAGO") {
+            ipvaTexto = `IPVA ${appState.anoAtual} PAGO`;
+          } else if (ipvaValue === "DOCUMENTAÇÃO PAGA") {
+            ipvaTexto = `${appState.anoAtual} PAGO`;
+          } else {
+            ipvaTexto = ipvaValue;
+          }
+
+          const { marca, modelo } = extrairMarcaModelo(
+            appState.xmlData.produto.descricao,
+          );
+
+          const dataSelecionada =
+            dataContratoInput.value || appState.xmlData.dataEmissao;
+          const [ano, mes, dia] = dataSelecionada.split("-");
+          const dataFormatada = `${dia}/${mes}/${ano}`;
+          const mesExtenso = getMonthName(dataFormatada);
+
+          return {
+            vendedor:
+              appState.vendedorMode === "base"
+                ? "MOTOLOB LTDA"
+                : appState.xmlData.emitente.nome,
+            cnpjVendedor:
+              appState.vendedorMode === "base"
+                ? "42.676.954/0001-69"
+                : formatCnpj(appState.xmlData.emitente.cnpj),
+            enderecoVendedor:
+              appState.vendedorMode === "base"
+                ? "AVENIDA MARECHAL CAMPOS, Nº 459, LOJA 01, BAIRRO DE LOURDES, VITÓRIA/ES"
+                : `${appState.xmlData.emitente.endereco.logradouro}, ${appState.xmlData.emitente.endereco.numero}, ${appState.xmlData.emitente.endereco.bairro}, ${appState.xmlData.emitente.endereco.cidade}/${appState.xmlData.emitente.endereco.uf}`,
+            comprador: appState.xmlData.comprador.nome,
+            cpfComprador: formatCpf(appState.xmlData.comprador.cpf),
+            enderecoComprador: `${appState.xmlData.comprador.endereco.logradouro}, ${appState.xmlData.comprador.endereco.numero}, ${appState.xmlData.comprador.endereco.bairro}`,
+            cidadeComprador: appState.xmlData.comprador.endereco.cidade,
+            ufComprador: appState.xmlData.comprador.endereco.uf,
+            cepComprador: formatCep(appState.xmlData.comprador.endereco.cep),
+            telefoneComprador: formatTelefone(
+              appState.xmlData.comprador.telefone,
+            ),
+            emailComprador: appState.xmlData.comprador.email,
+            marca: appState.veiculoData.marca || marca,
+            modelo: appState.veiculoData.modelo || modelo,
+            cor: appState.veiculoData.cor,
+            combustivel: appState.veiculoData.combustivel,
+            anoFab:
+              extrairAnoFab(appState.xmlData.produto.descricao) ||
+              "NÃO ESPECIFICADO",
+            anoMod:
+              extrairAnoMod(appState.xmlData.produto.descricao) ||
+              "NÃO ESPECIFICADO",
+            placa: appState.veiculoData.placa,
+            renavam: appState.veiculoData.renavam,
+            chassi: appState.veiculoData.chassi,
+            valor: appState.aplicarDesconto
+              ? appState.valorMoto.toLocaleString("pt-BR", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })
+              : valorContrato.toLocaleString("pt-BR", {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                }),
+            desconto: descontoValor.toLocaleString("pt-BR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }),
+            valorFinal: valorFinal.toLocaleString("pt-BR", {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2,
+            }),
+            formaPagamento: formaPagamento,
+            dataEmissao: dataFormatada,
+            vendedorResponsavel:
+              extrairVendedorResponsavel(appState.xmlData) || "BRUNA LOBATO",
+            quilometragem: quilometragem,
+            ipva: ipvaTexto,
+            multas: multas.toUpperCase(),
+            dia: dia,
+            mes: mesExtenso,
+            ano: ano,
+          };
+        }
+
+        async function downloadContract() {
+          if (!appState.contractData || !appState.isContractSaved) {
+            showNotification("Por favor, salve o contrato primeiro.", true);
+            return;
+          }
+
+          showNotification("GERANDO CONTRATO EM DOCX...");
+
+          try {
+            const response = await fetch(
+              "https://gerador-contratos-backend-ybag.onrender.com/gerar-contrato",
+              {
+                method: "POST",
+                mode: "cors",
+                headers: {
+                  "Content-Type": "application/json",
+                  Accept: "application/json",
+                },
+                body: JSON.stringify(appState.contractData),
+              },
+            );
+
+            if (!response.ok) {
+              const error = await response.json();
+              throw new Error(error.erro || "Erro no servidor");
             }
 
-            function converterParaNumero(valorFormatado) {
-                return parseFloat(
-                    valorFormatado
-                        .replace('R$ ', '')
-                        .replace(/\./g, '')
-                        .replace(',', '.')
-                ) || 0;
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            const nomeComprador = appState.contractData.comprador
+              .replace(/ /g, "_")
+              .toUpperCase();
+            a.download = `${nomeComprador}.docx`;
+            a.href = url;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            showNotification("CONTRATO BAIXADO COM SUCESSO!");
+          } catch (error) {
+            console.error("Erro:", error);
+            showNotification("Erro ao gerar contrato: " + error.message, true);
+          }
+        }
+
+        // Funções auxiliares
+        function validateManualFields() {
+          const requiredFields = [
+            { field: manualComprador, name: "Nome do Comprador" },
+            { field: manualCpfComprador, name: "CPF do Comprador" },
+            { field: manualLogradouroComprador, name: "Logradouro" },
+            { field: manualNumeroComprador, name: "Número" },
+            { field: manualBairroComprador, name: "Bairro" },
+            { field: manualCidadeComprador, name: "Cidade" },
+            { field: manualUfComprador, name: "UF" },
+            { field: manualMarca, name: "Marca do Veículo" },
+            { field: manualModelo, name: "Modelo do Veículo" },
+            { field: valorContratoInput, name: "Valor do Contrato" },
+            { field: manualAnoFab, name: "Ano de Fabricação" },
+            { field: manualAnoMod, name: "Ano do Modelo" },
+          ];
+
+          for (const required of requiredFields) {
+            if (!required.field.value.trim()) {
+              showNotification(`Campo obrigatório: ${required.name}`, true);
+              required.field.focus();
+              return false;
             }
+          }
 
-            function updateValores() {
-                if (appState.aplicarDesconto) {
-                    appState.valorMoto = converterParaNumero(
-                        document.getElementById('valorMotoInput').value
-                    );
-                    appState.valorDesconto = converterParaNumero(
-                        document.getElementById('valorDescontoInput').value
-                    );
+          // Validar CPF
+          const cpf = manualCpfComprador.value.replace(/\D/g, "");
+          if (cpf.length !== 11) {
+            showNotification("CPF inválido. Deve conter 11 dígitos.", true);
+            manualCpfComprador.focus();
+            return false;
+          }
 
-                    if (appState.xmlData || appState.isManualMode) generateContract();
-                }
-            }
+          // Validar UF (2 caracteres)
+          if (manualUfComprador.value.length !== 2) {
+            showNotification("UF inválido. Deve conter 2 caracteres.", true);
+            manualUfComprador.focus();
+            return false;
+          }
 
-            // As funções extractXmlData, extractVeiculoData, extractXmlDataMotoZero,
-            // extractVeiculoDataMotoZero, displayVeiculoData, e outras funções auxiliares
-            // permanecem EXATAMENTE como estavam no código original...
+          return true;
+        }
 
-            // [IMPORTANTE: Todas as outras funções do código original (extractXmlData, 
-            // extractVeiculoData, formatCpf, formatCnpj, formatCep, formatTelefone, 
-            // getMonthName, extrairAnoFab, extrairAnoMod, extrairVendedorResponsavel, 
-            // generateContractHTML, etc.) devem ser mantidas EXATAMENTE como estavam]
+        function toggleVendedorMode() {
+          appState.vendedorMode = this.checked ? "nota" : "base";
+          vendedorStatus.textContent = `Atualmente: ${this.checked ? "Vendedor da nota será utilizado" : "Vendedor base será utilizado"}`;
+          vendedorStatus.parentElement.className = this.checked
+            ? "vendedor-option vendedor-nota"
+            : "vendedor-option vendedor-base";
+          if (appState.xmlData && !appState.isManualMode) generateContract();
+        }
 
-            // Função extractXmlData (mantida do original)
-            function extractXmlData(xmlDoc) {
-                const ns = 'http://www.portalfiscal.inf.br/nfe';
-                const nsResolver = function (prefix) {
-                    const ns = {
-                        'nfe': 'http://www.portalfiscal.inf.br/nfe'
-                    };
-                    return ns[prefix] || null;
-                };
+        function toggleIpvaManualInput() {
+          ipvaManualInput.style.display =
+            this.value === "Manual" ? "block" : "none";
+          if (!appState.isManualMode) updateContractIfExists();
+        }
 
-                const emitente = xmlDoc.evaluate('//nfe:emit', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-                const destinatario = xmlDoc.evaluate('//nfe:dest', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-                const produto = xmlDoc.evaluate('//nfe:det/nfe:prod', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-                const total = xmlDoc.evaluate('//nfe:total/nfe:ICMSTot/nfe:vNF', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+        function updateContractIfExists() {
+          if (appState.xmlData && !appState.isManualMode) generateContract();
+        }
 
-                const dataEmissao = xmlDoc.evaluate('//nfe:ide/nfe:dhEmi', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-                const email = xmlDoc.evaluate('//nfe:obsCont/nfe:xTexto', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+        function preventDefaults(e) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
 
-                return {
-                    emitente: {
-                        nome: emitente.querySelector('xNome').textContent.toUpperCase(),
-                        cnpj: emitente.querySelector('CNPJ').textContent,
-                        endereco: {
-                            logradouro: emitente.querySelector('enderEmit > xLgr').textContent.toUpperCase(),
-                            numero: emitente.querySelector('enderEmit > nro').textContent,
-                            bairro: emitente.querySelector('enderEmit > xBairro').textContent.toUpperCase(),
-                            cidade: emitente.querySelector('enderEmit > xMun').textContent.toUpperCase(),
-                            uf: emitente.querySelector('enderEmit > UF').textContent,
-                            cep: emitente.querySelector('enderEmit > CEP').textContent
-                        }
-                    },
-                    comprador: {
-                        nome: destinatario.querySelector('xNome').textContent.toUpperCase(),
-                        cpf: destinatario.querySelector('CPF').textContent,
-                        endereco: {
-                            logradouro: destinatario.querySelector('enderDest > xLgr').textContent.toUpperCase(),
-                            numero: destinatario.querySelector('enderDest > nro').textContent,
-                            bairro: destinatario.querySelector('enderDest > xBairro').textContent.toUpperCase(),
-                            cidade: destinatario.querySelector('enderDest > xMun').textContent.toUpperCase(),
-                            uf: destinatario.querySelector('enderDest > UF').textContent,
-                            cep: destinatario.querySelector('enderDest > CEP').textContent
-                        },
-                        telefone: destinatario.querySelector('enderDest > fone').textContent,
-                        email: email ? email.textContent.toUpperCase() : ''
-                    },
-                    produto: {
-                        descricao: produto.querySelector('xProd').textContent.toUpperCase(),
-                        valor: parseFloat(produto.querySelector('vProd').textContent)
-                    },
-                    total: parseFloat(total.textContent),
-                    formaPagamento: "À VISTA".toUpperCase(),
-                    dataEmissao: dataEmissao.textContent.substring(0, 10)
-                };
-            }
+        function handleDrop(e) {
+          const dt = e.dataTransfer;
+          const files = dt.files;
+          xmlFileInput.files = files;
+          handleFileUpload();
+        }
 
-            function extractVeiculoData(xmlDoc) {
-                const infAdProd = xmlDoc.getElementsByTagName('infAdProd')[0];
-                const infAdProdText = infAdProd ? infAdProd.textContent : '';
-                const produtoDescricao = xmlDoc.getElementsByTagName('xProd')[0].textContent.toUpperCase();
+        // Funções de formatação monetária
+        function formatarMoedaEmTempoReal(elemento) {
+          let valor = elemento.value.replace(/\D/g, "");
 
-                const extrairDado = (texto, chave) => {
-                    const regex = new RegExp(`${chave}\\s*([^\\s]+)`);
-                    const match = texto.match(regex);
-                    return match ? match[1].toUpperCase() : null;
-                };
+          while (valor.length < 3) {
+            valor = "0" + valor;
+          }
 
-                const marcaModelo = extrairMarcaModelo(produtoDescricao);
+          const parteInteira = valor.slice(0, -2).replace(/^0+/, "") || "0";
+          const centavos = valor.slice(-2);
+          const parteInteiraFormatada = parteInteira.replace(
+            /\B(?=(\d{3})+(?!\d))/g,
+            ".",
+          );
 
-                return {
-                    marca: marcaModelo.marca,
-                    modelo: marcaModelo.modelo,
-                    cor: extrairDado(infAdProdText, 'Cor:'),
-                    placa: extrairDado(infAdProdText, 'Placa:'),
-                    chassi: extrairDado(infAdProdText, 'Chassi:'),
-                    renavam: extrairDado(infAdProdText, 'Renavam:') || extrairDado(infAdProdText, 'Renavan:'),
-                    combustivel: extrairDado(infAdProdText, 'Combustivel:'),
-                    anoFab: extrairAnoFab(produtoDescricao),
-                    anoMod: extrairAnoMod(produtoDescricao)
-                };
-            }
+          elemento.value = `R$ ${parteInteiraFormatada},${centavos}`;
 
-            function extractXmlDataMotoZero(xmlDoc) {
-                const ns = 'http://www.portalfiscal.inf.br/nfe';
-                const nsResolver = function (prefix) {
-                    const ns = { 'nfe': 'http://www.portalfiscal.inf.br/nfe' };
-                    return ns[prefix] || null;
-                };
+          const cursorPos = elemento.selectionStart;
+          if (cursorPos < 3) {
+            elemento.setSelectionRange(4, 4);
+          }
+        }
 
-                const emitente = xmlDoc.evaluate('//nfe:emit', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-                const destinatario = xmlDoc.evaluate('//nfe:dest', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-                const produto = xmlDoc.evaluate('//nfe:det/nfe:prod', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-                const total = xmlDoc.evaluate('//nfe:total/nfe:ICMSTot/nfe:vNF', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-                const dataEmissao = xmlDoc.evaluate('//nfe:ide/nfe:dhEmi', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-                const email = xmlDoc.evaluate('//nfe:obsCont/nfe:xTexto', xmlDoc, nsResolver, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+        function formatarMoedaFinal(elemento) {
+          let valor = elemento.value.replace(/\D/g, "");
 
-                return {
-                    emitente: {
-                        nome: emitente.querySelector('xNome').textContent.toUpperCase(),
-                        cnpj: emitente.querySelector('CNPJ').textContent,
-                        endereco: {
-                            logradouro: emitente.querySelector('enderEmit > xLgr').textContent.toUpperCase(),
-                            numero: emitente.querySelector('enderEmit > nro').textContent,
-                            bairro: emitente.querySelector('enderEmit > xBairro').textContent.toUpperCase(),
-                            cidade: emitente.querySelector('enderEmit > xMun').textContent.toUpperCase(),
-                            uf: emitente.querySelector('enderEmit > UF').textContent,
-                            cep: emitente.querySelector('enderEmit > CEP').textContent
-                        }
-                    },
-                    comprador: {
-                        nome: destinatario.querySelector('xNome').textContent.toUpperCase(),
-                        cpf: destinatario.querySelector('CPF') ? destinatario.querySelector('CPF').textContent : destinatario.querySelector('CNPJ').textContent,
-                        endereco: {
-                            logradouro: destinatario.querySelector('enderDest > xLgr').textContent.toUpperCase(),
-                            numero: destinatario.querySelector('enderDest > nro').textContent,
-                            bairro: destinatario.querySelector('enderDest > xBairro').textContent.toUpperCase(),
-                            cidade: destinatario.querySelector('enderDest > xMun').textContent.toUpperCase(),
-                            uf: destinatario.querySelector('enderDest > UF').textContent,
-                            cep: destinatario.querySelector('enderDest > CEP').textContent
-                        },
-                        telefone: destinatario.querySelector('enderDest > fone').textContent,
-                        email: email ? email.textContent.toUpperCase() : ''
-                    },
-                    produto: {
-                        descricao: produto.querySelector('xProd').textContent.toUpperCase(),
-                        valor: parseFloat(produto.querySelector('vProd').textContent)
-                    },
-                    total: parseFloat(total.textContent),
-                    formaPagamento: "À VISTA".toUpperCase(),
-                    dataEmissao: dataEmissao.textContent.substring(0, 10)
-                };
-            }
+          if (valor === "") valor = "000";
+          while (valor.length < 3) {
+            valor = "0" + valor;
+          }
 
-            function extractVeiculoDataMotoZero(xmlDoc) {
-                const veicProd = xmlDoc.getElementsByTagName('veicProd')[0];
-                const infAdProd = xmlDoc.getElementsByTagName('infAdProd')[0];
-                const ide = xmlDoc.getElementsByTagName('ide')[0];
-                const infAdProdText = infAdProd ? infAdProd.textContent : '';
+          const parteInteira = valor.slice(0, -2).replace(/^0+/, "") || "0";
+          const centavos = valor.slice(-2);
+          const parteInteiraFormatada = parteInteira.replace(
+            /\B(?=(\d{3})+(?!\d))/g,
+            ".",
+          );
 
-                const extrairDado = (texto, chave) => {
-                    const regexPadrao1 = new RegExp(`${chave}:\\s*([^,]+)`);
-                    const regexPadrao2 = new RegExp(`${chave}\\s+([^,]+)`);
+          elemento.value = `R$ ${parteInteiraFormatada},${centavos}`;
+        }
 
-                    let match = texto.match(regexPadrao1) || texto.match(regexPadrao2);
-                    return match ? match[1].trim().toUpperCase() : null;
-                };
+        function formatarNumeroParaMoeda(numero) {
+          return numero.toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          });
+        }
 
-                return {
-                    marca: 'YAMAHA',
-                    modelo: xmlDoc.getElementsByTagName('xProd')[0].textContent.split(',')[0].toUpperCase(),
-                    serie: ide ? ide.querySelector('serie').textContent : extrairDado(infAdProdText, 'SERIAL'),
-                    codigo_cor: veicProd ? veicProd.querySelector('cCor').textContent : extrairDado(infAdProdText, 'CÓDIGO COR'),
-                    cor: veicProd ? veicProd.querySelector('xCor').textContent.toUpperCase() : extrairDado(infAdProdText, 'COR'),
-                    pintura: extrairDado(infAdProdText, 'PINTURA'),
-                    potencia: veicProd ? `${veicProd.querySelector('pot').textContent} CV` : extrairDado(infAdProdText, 'POTENCIA'),
-                    cilindradas: veicProd ? veicProd.querySelector('cilin').textContent : extrairDado(infAdProdText, 'CILINDRADAS'),
-                    peso_liquido: veicProd ? veicProd.querySelector('pesoL').textContent : extrairDado(infAdProdText, 'PESO LIQUIDO'),
-                    peso_bruto: veicProd ? veicProd.querySelector('pesoB').textContent : extrairDado(infAdProdText, 'PESO BRUTO'),
-                    combustivel: veicProd ? (veicProd.querySelector('tpComb').textContent === '02' ? 'GASOLINA' : 'FLEX') : extrairDado(infAdProdText, 'COMBUSTIVEL'),
-                    motor: extrairDado(infAdProdText, 'No MOTOR'),
-                    cmt: veicProd ? veicProd.querySelector('CMT').textContent : extrairDado(infAdProdText, 'CMT'),
-                    distancia_eixos: veicProd ? `${veicProd.querySelector('dist').textContent} MM` : extrairDado(infAdProdText, 'DIST. ENTRE EIXOS'),
-                    tipo_veiculo: extrairDado(infAdProdText, 'TIPO VEICULO'),
-                    renavam: veicProd ? veicProd.querySelector('cMod').textContent : extrairDado(infAdProdText, 'RENAVAM'),
-                    passageiros: extrairDado(infAdProdText, 'CAP DE PASSAGEIROS'),
-                    especie: extrairDado(infAdProdText, 'ESPECIE'),
-                    chassi: veicProd ? veicProd.querySelector('chassi').textContent : extrairDado(infAdProdText, 'CHASSI'),
-                    placa: 'NOVA',
-                    anoFab: veicProd ? veicProd.querySelector('anoFab').textContent : extrairDado(infAdProdText, 'ANO FAB'),
-                    anoMod: veicProd ? veicProd.querySelector('anoMod').textContent : extrairDado(infAdProdText, 'ANO MOD')
-                };
-            }
+        function converterParaNumero(valorFormatado) {
+          return (
+            parseFloat(
+              valorFormatado
+                .replace("R$ ", "")
+                .replace(/\./g, "")
+                .replace(",", "."),
+            ) || 0
+          );
+        }
 
-            function displayVeiculoData(data) {
-                veiculoDetails.innerHTML = '';
-                let camposFaltantes = [];
+        function updateValores() {
+          if (appState.aplicarDesconto) {
+            appState.valorMoto = converterParaNumero(
+              document.getElementById("valorMotoInput").value,
+            );
+            appState.valorDesconto = converterParaNumero(
+              document.getElementById("valorDescontoInput").value,
+            );
 
-                const campos = appState.isMotoZero
-                    ? [
-                        { chave: 'marca', label: 'MARCA' },
-                        { chave: 'modelo', label: 'MODELO' },
-                        { chave: 'serie', label: 'SÉRIE' },
-                        { chave: 'codigo_cor', label: 'CÓDIGO COR' },
-                        { chave: 'cor', label: 'COR' },
-                        { chave: 'pintura', label: 'PINTURA' },
-                        { chave: 'potencia', label: 'POTÊNCIA' },
-                        { chave: 'cilindradas', label: 'CILINDRADAS' },
-                        { chave: 'peso_liquido', label: 'PESO LÍQUIDO' },
-                        { chave: 'peso_bruto', label: 'PESO BRUTO' },
-                        { chave: 'combustivel', label: 'COMBUSTÍVEL' },
-                        { chave: 'motor', label: 'Nº MOTOR' },
-                        { chave: 'cmt', label: 'CMT' },
-                        { chave: 'distancia_eixos', label: 'DIST. EIXOS' },
-                        { chave: 'tipo_veiculo', label: 'TIPO VEÍCULO' },
-                        { chave: 'renavam', label: 'RENAVAM' },
-                        { chave: 'passageiros', label: 'PASSAGEIROS' },
-                        { chave: 'especie', label: 'ESPÉCIE' },
-                        { chave: 'chassi', label: 'CHASSI' }
-                    ]
-                    : [
-                        { chave: 'marca', label: 'MARCA' },
-                        { chave: 'modelo', label: 'MODELO' },
-                        { chave: 'cor', label: 'COR' },
-                        { chave: 'placa', label: 'PLACA' },
-                        { chave: 'chassi', label: 'CHASSI' },
-                        { chave: 'renavam', label: 'RENAVAM' },
-                        { chave: 'combustivel', label: 'COMBUSTÍVEL' },
-                        { chave: 'anoFab', label: 'ANO FAB' },
-                        { chave: 'anoMod', label: 'ANO MOD' }
-                    ];
+            if (appState.xmlData && !appState.isManualMode) generateContract();
+          }
+        }
 
-                campos.forEach(campo => {
-                    const valor = data[campo.chave] || 'NÃO ENCONTRADO';
-                    const estaFaltando = valor === 'NÃO ENCONTRADO';
+        // Função extractXmlData (mantida do original)
+        function extractXmlData(xmlDoc) {
+          const ns = "http://www.portalfiscal.inf.br/nfe";
+          const nsResolver = function (prefix) {
+            const ns = {
+              nfe: "http://www.portalfiscal.inf.br/nfe",
+            };
+            return ns[prefix] || null;
+          };
 
-                    if (estaFaltando) camposFaltantes.push(campo.label);
+          const emitente = xmlDoc.evaluate(
+            "//nfe:emit",
+            xmlDoc,
+            nsResolver,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null,
+          ).singleNodeValue;
+          const destinatario = xmlDoc.evaluate(
+            "//nfe:dest",
+            xmlDoc,
+            nsResolver,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null,
+          ).singleNodeValue;
+          const produto = xmlDoc.evaluate(
+            "//nfe:det/nfe:prod",
+            xmlDoc,
+            nsResolver,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null,
+          ).singleNodeValue;
+          const total = xmlDoc.evaluate(
+            "//nfe:total/nfe:ICMSTot/nfe:vNF",
+            xmlDoc,
+            nsResolver,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null,
+          ).singleNodeValue;
 
-                    veiculoDetails.innerHTML += `
-            <div class="veiculo-item ${estaFaltando ? 'missing' : ''}">
+          const dataEmissao = xmlDoc.evaluate(
+            "//nfe:ide/nfe:dhEmi",
+            xmlDoc,
+            nsResolver,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null,
+          ).singleNodeValue;
+          const email = xmlDoc.evaluate(
+            "//nfe:obsCont/nfe:xTexto",
+            xmlDoc,
+            nsResolver,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null,
+          ).singleNodeValue;
+
+          return {
+            emitente: {
+              nome: emitente.querySelector("xNome").textContent.toUpperCase(),
+              cnpj: emitente.querySelector("CNPJ").textContent,
+              endereco: {
+                logradouro: emitente
+                  .querySelector("enderEmit > xLgr")
+                  .textContent.toUpperCase(),
+                numero: emitente.querySelector("enderEmit > nro").textContent,
+                bairro: emitente
+                  .querySelector("enderEmit > xBairro")
+                  .textContent.toUpperCase(),
+                cidade: emitente
+                  .querySelector("enderEmit > xMun")
+                  .textContent.toUpperCase(),
+                uf: emitente.querySelector("enderEmit > UF").textContent,
+                cep: emitente.querySelector("enderEmit > CEP").textContent,
+              },
+            },
+            comprador: {
+              nome: destinatario
+                .querySelector("xNome")
+                .textContent.toUpperCase(),
+              cpf: destinatario.querySelector("CPF").textContent,
+              endereco: {
+                logradouro: destinatario
+                  .querySelector("enderDest > xLgr")
+                  .textContent.toUpperCase(),
+                numero:
+                  destinatario.querySelector("enderDest > nro").textContent,
+                bairro: destinatario
+                  .querySelector("enderDest > xBairro")
+                  .textContent.toUpperCase(),
+                cidade: destinatario
+                  .querySelector("enderDest > xMun")
+                  .textContent.toUpperCase(),
+                uf: destinatario.querySelector("enderDest > UF").textContent,
+                cep: destinatario.querySelector("enderDest > CEP").textContent,
+              },
+              telefone:
+                destinatario.querySelector("enderDest > fone").textContent,
+              email: email ? email.textContent.toUpperCase() : "",
+            },
+            produto: {
+              descricao: produto
+                .querySelector("xProd")
+                .textContent.toUpperCase(),
+              valor: parseFloat(produto.querySelector("vProd").textContent),
+            },
+            total: parseFloat(total.textContent),
+            formaPagamento: "À VISTA".toUpperCase(),
+            dataEmissao: dataEmissao.textContent.substring(0, 10),
+          };
+        }
+
+        function extractVeiculoData(xmlDoc) {
+          const infAdProd = xmlDoc.getElementsByTagName("infAdProd")[0];
+          const infAdProdText = infAdProd ? infAdProd.textContent : "";
+          const produtoDescricao = xmlDoc
+            .getElementsByTagName("xProd")[0]
+            .textContent.toUpperCase();
+
+          const extrairDado = (texto, chave) => {
+            const regex = new RegExp(`${chave}\\s*([^\\s]+)`);
+            const match = texto.match(regex);
+            return match ? match[1].toUpperCase() : null;
+          };
+
+          const marcaModelo = extrairMarcaModelo(produtoDescricao);
+
+          return {
+            marca: marcaModelo.marca,
+            modelo: marcaModelo.modelo,
+            cor: extrairDado(infAdProdText, "Cor:"),
+            placa: extrairDado(infAdProdText, "Placa:"),
+            chassi: extrairDado(infAdProdText, "Chassi:"),
+            renavam:
+              extrairDado(infAdProdText, "Renavam:") ||
+              extrairDado(infAdProdText, "Renavan:"),
+            combustivel: extrairDado(infAdProdText, "Combustivel:"),
+            anoFab: extrairAnoFab(produtoDescricao),
+            anoMod: extrairAnoMod(produtoDescricao),
+          };
+        }
+
+        function extractXmlDataMotoZero(xmlDoc) {
+          const ns = "http://www.portalfiscal.inf.br/nfe";
+          const nsResolver = function (prefix) {
+            const ns = { nfe: "http://www.portalfiscal.inf.br/nfe" };
+            return ns[prefix] || null;
+          };
+
+          const emitente = xmlDoc.evaluate(
+            "//nfe:emit",
+            xmlDoc,
+            nsResolver,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null,
+          ).singleNodeValue;
+          const destinatario = xmlDoc.evaluate(
+            "//nfe:dest",
+            xmlDoc,
+            nsResolver,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null,
+          ).singleNodeValue;
+          const produto = xmlDoc.evaluate(
+            "//nfe:det/nfe:prod",
+            xmlDoc,
+            nsResolver,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null,
+          ).singleNodeValue;
+          const total = xmlDoc.evaluate(
+            "//nfe:total/nfe:ICMSTot/nfe:vNF",
+            xmlDoc,
+            nsResolver,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null,
+          ).singleNodeValue;
+          const dataEmissao = xmlDoc.evaluate(
+            "//nfe:ide/nfe:dhEmi",
+            xmlDoc,
+            nsResolver,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null,
+          ).singleNodeValue;
+          const email = xmlDoc.evaluate(
+            "//nfe:obsCont/nfe:xTexto",
+            xmlDoc,
+            nsResolver,
+            XPathResult.FIRST_ORDERED_NODE_TYPE,
+            null,
+          ).singleNodeValue;
+
+          return {
+            emitente: {
+              nome: emitente.querySelector("xNome").textContent.toUpperCase(),
+              cnpj: emitente.querySelector("CNPJ").textContent,
+              endereco: {
+                logradouro: emitente
+                  .querySelector("enderEmit > xLgr")
+                  .textContent.toUpperCase(),
+                numero: emitente.querySelector("enderEmit > nro").textContent,
+                bairro: emitente
+                  .querySelector("enderEmit > xBairro")
+                  .textContent.toUpperCase(),
+                cidade: emitente
+                  .querySelector("enderEmit > xMun")
+                  .textContent.toUpperCase(),
+                uf: emitente.querySelector("enderEmit > UF").textcontent,
+                cep: emitente.querySelector("enderEmit > CEP").textContent,
+              },
+            },
+            comprador: {
+              nome: destinatario
+                .querySelector("xNome")
+                .textContent.toUpperCase(),
+              cpf: destinatario.querySelector("CPF")
+                ? destinatario.querySelector("CPF").textContent
+                : destinatario.querySelector("CNPJ").textContent,
+              endereco: {
+                logradouro: destinatario
+                  .querySelector("enderDest > xLgr")
+                  .textContent.toUpperCase(),
+                numero:
+                  destinatario.querySelector("enderDest > nro").textContent,
+                bairro: destinatario
+                  .querySelector("enderDest > xBairro")
+                  .textContent.toUpperCase(),
+                cidade: destinatario
+                  .querySelector("enderDest > xMun")
+                  .textContent.toUpperCase(),
+                uf: destinatario.querySelector("enderDest > UF").textContent,
+                cep: destinatario.querySelector("enderDest > CEP").textContent,
+              },
+              telefone:
+                destinatario.querySelector("enderDest > fone").textContent,
+              email: email ? email.textContent.toUpperCase() : "",
+            },
+            produto: {
+              descricao: produto
+                .querySelector("xProd")
+                .textContent.toUpperCase(),
+              valor: parseFloat(produto.querySelector("vProd").textContent),
+            },
+            total: parseFloat(total.textContent),
+            formaPagamento: "À VISTA".toUpperCase(),
+            dataEmissao: dataEmissao.textContent.substring(0, 10),
+          };
+        }
+
+        function extractVeiculoDataMotoZero(xmlDoc) {
+          const veicProd = xmlDoc.getElementsByTagName("veicProd")[0];
+          const infAdProd = xmlDoc.getElementsByTagName("infAdProd")[0];
+          const ide = xmlDoc.getElementsByTagName("ide")[0];
+          const infAdProdText = infAdProd ? infAdProd.textContent : "";
+
+          const extrairDado = (texto, chave) => {
+            const regexPadrao1 = new RegExp(`${chave}:\\s*([^,]+)`);
+            const regexPadrao2 = new RegExp(`${chave}\\s+([^,]+)`);
+
+            let match = texto.match(regexPadrao1) || texto.match(regexPadrao2);
+            return match ? match[1].trim().toUpperCase() : null;
+          };
+
+          return {
+            marca: "YAMAHA",
+            modelo: xmlDoc
+              .getElementsByTagName("xProd")[0]
+              .textContent.split(",")[0]
+              .toUpperCase(),
+            serie: ide
+              ? ide.querySelector("serie").textContent
+              : extrairDado(infAdProdText, "SERIAL"),
+            codigo_cor: veicProd
+              ? veicProd.querySelector("cCor").textContent
+              : extrairDado(infAdProdText, "CÓDIGO COR"),
+            cor: veicProd
+              ? veicProd.querySelector("xCor").textContent.toUpperCase()
+              : extrairDado(infAdProdText, "COR"),
+            pintura: extrairDado(infAdProdText, "PINTURA"),
+            potencia: veicProd
+              ? `${veicProd.querySelector("pot").textContent} CV`
+              : extrairDado(infAdProdText, "POTENCIA"),
+            cilindradas: veicProd
+              ? veicProd.querySelector("cilin").textContent
+              : extrairDado(infAdProdText, "CILINDRADAS"),
+            peso_liquido: veicProd
+              ? veicProd.querySelector("pesoL").textContent
+              : extrairDado(infAdProdText, "PESO LIQUIDO"),
+            peso_bruto: veicProd
+              ? veicProd.querySelector("pesoB").textContent
+              : extrairDado(infAdProdText, "PESO BRUTO"),
+            combustivel: veicProd
+              ? veicProd.querySelector("tpComb").textContent === "02"
+                ? "GASOLINA"
+                : "FLEX"
+              : extrairDado(infAdProdText, "COMBUSTIVEL"),
+            motor: extrairDado(infAdProdText, "No MOTOR"),
+            cmt: veicProd
+              ? veicProd.querySelector("CMT").textContent
+              : extrairDado(infAdProdText, "CMT"),
+            distancia_eixos: veicProd
+              ? `${veicProd.querySelector("dist").textContent} MM`
+              : extrairDado(infAdProdText, "DIST. ENTRE EIXOS"),
+            tipo_veiculo: extrairDado(infAdProdText, "TIPO VEICULO"),
+            renavam: veicProd
+              ? veicProd.querySelector("cMod").textContent
+              : extrairDado(infAdProdText, "RENAVAM"),
+            passageiros: extrairDado(infAdProdText, "CAP DE PASSAGEIROS"),
+            especie: extrairDado(infAdProdText, "ESPECIE"),
+            chassi: veicProd
+              ? veicProd.querySelector("chassi").textContent
+              : extrairDado(infAdProdText, "CHASSI"),
+            placa: "NOVA",
+            anoFab: veicProd
+              ? veicProd.querySelector("anoFab").textContent
+              : extrairDado(infAdProdText, "ANO FAB"),
+            anoMod: veicProd
+              ? veicProd.querySelector("anoMod").textContent
+              : extrairDado(infAdProdText, "ANO MOD"),
+          };
+        }
+
+        function displayVeiculoData(data) {
+          veiculoDetails.innerHTML = "";
+          let camposFaltantes = [];
+
+          const campos = appState.isMotoZero
+            ? [
+                { chave: "marca", label: "MARCA" },
+                { chave: "modelo", label: "MODELO" },
+                { chave: "serie", label: "SÉRIE" },
+                { chave: "codigo_cor", label: "CÓDIGO COR" },
+                { chave: "cor", label: "COR" },
+                { chave: "pintura", label: "PINTURA" },
+                { chave: "potencia", label: "POTÊNCIA" },
+                { chave: "cilindradas", label: "CILINDRADAS" },
+                { chave: "peso_liquido", label: "PESO LÍQUIDO" },
+                { chave: "peso_bruto", label: "PESO BRUTO" },
+                { chave: "combustivel", label: "COMBUSTÍVEL" },
+                { chave: "motor", label: "Nº MOTOR" },
+                { chave: "cmt", label: "CMT" },
+                { chave: "distancia_eixos", label: "DIST. EIXOS" },
+                { chave: "tipo_veiculo", label: "TIPO VEÍCULO" },
+                { chave: "renavam", label: "RENAVAM" },
+                { chave: "passageiros", label: "PASSAGEIROS" },
+                { chave: "especie", label: "ESPÉCIE" },
+                { chave: "chassi", label: "CHASSI" },
+              ]
+            : [
+                { chave: "marca", label: "MARCA" },
+                { chave: "modelo", label: "MODELO" },
+                { chave: "cor", label: "COR" },
+                { chave: "placa", label: "PLACA" },
+                { chave: "chassi", label: "CHASSI" },
+                { chave: "renavam", label: "RENAVAM" },
+                { chave: "combustivel", label: "COMBUSTÍVEL" },
+                { chave: "anoFab", label: "ANO FAB" },
+                { chave: "anoMod", label: "ANO MOD" },
+              ];
+
+          campos.forEach((campo) => {
+            const valor = data[campo.chave] || "NÃO ENCONTRADO";
+            const estaFaltando = valor === "NÃO ENCONTRADO";
+
+            if (estaFaltando) camposFaltantes.push(campo.label);
+
+            veiculoDetails.innerHTML += `
+            <div class="veiculo-item ${estaFaltando ? "missing" : ""}">
                 <span class="label-container">
                     <strong>${campo.label}</strong>
-                    <button class="copy-btn" data-value="${valor.replace(/"/g, '&quot;')}">
+                    <button class="copy-btn" data-value="${valor.replace(/"/g, "&quot;")}">
                         <i class="fas fa-copy"></i>
                     </button>    
                 </span>
@@ -1796,152 +2439,180 @@
                 </div>
             </div>
         `;
-                });
+          });
 
-                document.querySelectorAll('.copy-btn').forEach(btn => {
-                    btn.addEventListener('click', () => {
-                        const value = btn.getAttribute('data-value');
-                        navigator.clipboard.writeText(value).then(() => {
-                            showNotification('Copiado para a área de transferência!');
-                        });
-                    });
-                });
+          document.querySelectorAll(".copy-btn").forEach((btn) => {
+            btn.addEventListener("click", () => {
+              const value = btn.getAttribute("data-value");
+              navigator.clipboard.writeText(value).then(() => {
+                showNotification("Copiado para a área de transferência!");
+              });
+            });
+          });
 
-                veiculoInfo.style.display = 'block';
-                if (camposFaltantes.length > 0) {
-                    showNotification(`Atenção: Campos não encontrados - ${camposFaltantes.join(', ')}`, true);
-                }
-            }
+          veiculoInfo.style.display = "block";
+          if (camposFaltantes.length > 0) {
+            showNotification(
+              `Atenção: Campos não encontrados - ${camposFaltantes.join(", ")}`,
+              true,
+            );
+          }
+        }
 
-            function formatFileSize(bytes) {
-                if (bytes === 0) return '0 Bytes';
-                const k = 1024;
-                const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-                const i = Math.floor(Math.log(bytes) / Math.log(k));
-                return parseFloat((bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i]);
-            }
+        function formatFileSize(bytes) {
+          if (bytes === 0) return "0 Bytes";
+          const k = 1024;
+          const sizes = ["Bytes", "KB", "MB", "GB"];
+          const i = Math.floor(Math.log(bytes) / Math.log(k));
+          return parseFloat(
+            (bytes / Math.pow(k, i)).toFixed(2) + " " + sizes[i],
+          );
+        }
 
-            function extrairMarcaModelo(descricao) {
-                const regexAno = /\(\d{4}\/\d{4}\)/;
-                const matchAno = descricao.match(regexAno);
+        function extrairMarcaModelo(descricao) {
+          const regexAno = /\(\d{4}\/\d{4}\)/;
+          const matchAno = descricao.match(regexAno);
 
-                let textoPreAno = descricao;
-                if (matchAno) {
-                    const indexAno = descricao.indexOf(matchAno[0]);
-                    textoPreAno = descricao.substring(0, indexAno).trim();
-                }
+          let textoPreAno = descricao;
+          if (matchAno) {
+            const indexAno = descricao.indexOf(matchAno[0]);
+            textoPreAno = descricao.substring(0, indexAno).trim();
+          }
 
-                const textoUpper = textoPreAno.toUpperCase();
-                let marcaEncontrada = "";
-                let modelo = textoPreAno;
+          const textoUpper = textoPreAno.toUpperCase();
+          let marcaEncontrada = "";
+          let modelo = textoPreAno;
 
-                for (let qtdPalavras = 3; qtdPalavras >= 1; qtdPalavras--) {
-                    for (let i = 0; i <= textoUpper.split(' ').length - qtdPalavras; i++) {
-                        const palavrasTeste = textoUpper.split(' ').slice(i, i + qtdPalavras).join(' ');
+          for (let qtdPalavras = 3; qtdPalavras >= 1; qtdPalavras--) {
+            for (
+              let i = 0;
+              i <= textoUpper.split(" ").length - qtdPalavras;
+              i++
+            ) {
+              const palavrasTeste = textoUpper
+                .split(" ")
+                .slice(i, i + qtdPalavras)
+                .join(" ");
 
-                        if (appState.marcasMotos.includes(palavrasTeste)) {
-                            marcaEncontrada = palavrasTeste;
-                            const palavras = textoPreAno.split(' ');
-                            modelo = palavras.slice(i + qtdPalavras).join(' ').trim();
-
-                            return {
-                                marca: marcaEncontrada,
-                                modelo: modelo
-                            };
-                        }
-                    }
-                }
-
-                const primeiraPalavra = textoPreAno.split(' ')[0].toUpperCase();
-                if (appState.marcasMotos.includes(primeiraPalavra)) {
-                    marcaEncontrada = primeiraPalavra;
-                    modelo = textoPreAno.split(' ').slice(1).join(' ').trim();
-                }
+              if (appState.marcasMotos.includes(palavrasTeste)) {
+                marcaEncontrada = palavrasTeste;
+                const palavras = textoPreAno.split(" ");
+                modelo = palavras
+                  .slice(i + qtdPalavras)
+                  .join(" ")
+                  .trim();
 
                 return {
-                    marca: marcaEncontrada,
-                    modelo: modelo || textoPreAno
+                  marca: marcaEncontrada,
+                  modelo: modelo,
                 };
+              }
             }
+          }
 
-            function formatCpf(cpf) {
-                if (!cpf || cpf.length !== 11) return cpf;
-                return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-            }
+          const primeiraPalavra = textoPreAno.split(" ")[0].toUpperCase();
+          if (appState.marcasMotos.includes(primeiraPalavra)) {
+            marcaEncontrada = primeiraPalavra;
+            modelo = textoPreAno.split(" ").slice(1).join(" ").trim();
+          }
 
-            function formatCnpj(cnpj) {
-                if (!cnpj || cnpj.length !== 14) return cnpj;
-                return cnpj.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, "$1.$2.$3/$4-$5");
-            }
+          return {
+            marca: marcaEncontrada,
+            modelo: modelo || textoPreAno,
+          };
+        }
 
-            function formatCep(cep) {
-                if (!cep || cep.length !== 8) return cep;
-                return cep.replace(/(\d{5})(\d{3})/, "$1-$2");
-            }
+        function formatCpf(cpf) {
+          if (!cpf || cpf.length !== 11) return cpf;
+          return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+        }
 
-            function formatTelefone(telefone) {
-                if (!telefone) return '';
-                telefone = telefone.replace(/\D/g, '');
+        function formatCnpj(cnpj) {
+          if (!cnpj || cnpj.length !== 14) return cnpj;
+          return cnpj.replace(
+            /(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/,
+            "$1.$2.$3/$4-$5",
+          );
+        }
 
-                if (telefone.length === 10) {
-                    return telefone.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
-                } else if (telefone.length === 11) {
-                    return telefone.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
-                }
-                return telefone;
-            }
+        function formatCep(cep) {
+          if (!cep || cep.length !== 8) return cep;
+          return cep.replace(/(\d{5})(\d{3})/, "$1-$2");
+        }
 
-            function getMonthName(dateString) {
-                const months = [
-                    'JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO',
-                    'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'
-                ];
+        function formatTelefone(telefone) {
+          if (!telefone) return "";
+          telefone = telefone.replace(/\D/g, "");
 
-                const parts = dateString.split('/');
-                if (parts.length < 2) return '';
+          if (telefone.length === 10) {
+            return telefone.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+          } else if (telefone.length === 11) {
+            return telefone.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+          }
+          return telefone;
+        }
 
-                const monthIndex = parseInt(parts[1], 10) - 1;
-                if (monthIndex >= 0 && monthIndex < 12) {
-                    return months[monthIndex];
-                }
+        function getMonthName(dateString) {
+          const months = [
+            "JANEIRO",
+            "FEVEREIRO",
+            "MARÇO",
+            "ABRIL",
+            "MAIO",
+            "JUNHO",
+            "JULHO",
+            "AGOSTO",
+            "SETEMBRO",
+            "OUTUBRO",
+            "NOVEMBRO",
+            "DEZEMBRO",
+          ];
 
-                return '';
-            }
+          const parts = dateString.split("/");
+          if (parts.length < 2) return "";
 
-            function extrairAnoFab(descricao) {
-                const match = descricao.match(/\((\d{4})\//);
-                return match ? match[1] : null;
-            }
+          const monthIndex = parseInt(parts[1], 10) - 1;
+          if (monthIndex >= 0 && monthIndex < 12) {
+            return months[monthIndex];
+          }
 
-            function extrairAnoMod(descricao) {
-                const match = descricao.match(/\/\d{4}\)|\/(\d{4})\)/);
-                return match ? match[1] || match[0].replace(/\D/g, '') : null;
-            }
+          return "";
+        }
 
-            function extrairVendedorResponsavel(xmlData) {
-                return null;
-            }
+        function extrairAnoFab(descricao) {
+          const match = descricao.match(/\((\d{4})\//);
+          return match ? match[1] : null;
+        }
 
-            function generateContractHTML(data) {
-                return `
+        function extrairAnoMod(descricao) {
+          const match = descricao.match(/\/\d{4}\)|\/(\d{4})\)/);
+          return match ? match[1] || match[0].replace(/\D/g, "") : null;
+        }
+
+        function extrairVendedorResponsavel(xmlData) {
+          return null;
+        }
+
+        function generateContractHTML(data) {
+          return `
             <h2>CONTRATO DE COMPRA E VENDA</h2>
-            
-            <div class="contract-section">
-                <h3>VENDEDOR</h3>
-                <div class="contract-field">
-                    <strong>${data.vendedor.toUpperCase()}</strong>, pessoa jurídica de direito privado, 
-                    inscrita no CNPJ ${data.cnpjVendedor}, com sede em ${data.enderecoVendedor.toUpperCase()}.
-                </div>
+        
+        <div class="contract-section">
+            <h3>VENDEDOR</h3>
+            <div class="contract-field">
+                <strong>${data.vendedor.toUpperCase()}</strong>, pessoa jurídica de direito privado, 
+                inscrita no CNPJ ${data.cnpjVendedor}, com sede em ${data.enderecoVendedor.toUpperCase()}.
             </div>
-            
-            <div class="contract-section">
-                <h3>COMPRADOR</h3>
-                <div class="contract-field">
-                    <strong>${data.comprador.toUpperCase()}</strong>, inscrito no CPF sob o nº. ${data.cpfComprador}, 
-                    com endereço na ${data.enderecoComprador.toUpperCase()}, ${data.cidadeComprador.toUpperCase()}/${data.ufComprador}, 
-                    CEP ${data.cepComprador}, TELEFONE ${data.telefoneComprador} e E-MAIL ${data.emailComprador.toUpperCase()}.
-                </div>
+        </div>
+        
+        <div class="contract-section">
+            <h3>COMPRADOR</h3>
+            <div class="contract-field">
+                <strong>${data.comprador.toUpperCase()}</strong>, inscrito no CPF sob o nº. ${data.cpfComprador}, 
+                com endereço na ${data.enderecoComprador.toUpperCase()}, ${data.cidadeComprador.toUpperCase()}/${data.ufComprador}, 
+                CEP ${data.cepComprador}, TELEFONE ${data.telefoneComprador} e E-MAIL ${data.emailComprador.toUpperCase()}.
             </div>
+        </div>
             
             <div class="contract-section">
                 <h3>CLÁUSULA PRIMEIRA - DO OBJETO</h3>
@@ -2015,19 +2686,21 @@
                 </div>
             </div>
         `;
-            }
+        }
 
-            // Initialize with default values
-            function init() {
-                multasInput.value = 'SEM MULTAS';
-                const today = new Date().toISOString().split('T')[0];
-                dataContratoInput.value = today;
-                valorContratoInput.value = 'R$ 0,00';
-            }
+        // Initialize with default values
+        function init() {
+          multasInput.value = "SEM MULTAS";
+          const today = new Date().toISOString().split("T")[0];
+          dataContratoInput.value = today;
+          valorContratoInput.value = "R$ 0,00";
 
-            init();
-        });
+          // Inicialmente desabilitar botão de download
+          downloadBtn.disabled = true;
+        }
+
+        init();
+      });
     </script>
-</body>
-
+  </body>
 </html>
