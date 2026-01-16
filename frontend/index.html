@@ -15,6 +15,7 @@
             --dark: #2c3e50;
             --success: #27ae60;
             --warning: #f39c12;
+            --info: #17a2b8;
         }
 
         * {
@@ -403,6 +404,10 @@
             background: var(--accent);
         }
 
+        .notification.info {
+            background: var(--info);
+        }
+
         footer {
             text-align: center;
             padding: 30px 0;
@@ -560,11 +565,61 @@
             color: #333;
         }
 
-
         .veiculo-item.missing {
             background-color: #ffebee;
             border-left: 4px solid #f44336;
             animation: pulse 1.5s infinite;
+        }
+
+        /* Estilos para o modo manual */
+        .manual-mode-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: #e8f5e9;
+            border-radius: 10px;
+            border-left: 4px solid var(--success);
+            display: none;
+        }
+
+        .manual-mode-section.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        .manual-mode-toggle {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fff3cd;
+            border-radius: 10px;
+            border-left: 4px solid var(--warning);
+        }
+
+        .manual-mode-toggle h3 {
+            margin-bottom: 10px;
+            color: var(--warning);
+        }
+
+        .two-column-form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .two-column-form {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -589,37 +644,157 @@
                     <h2>Carregar Nota Fiscal (XML)</h2>
                 </div>
                 <div class="card-body">
-
-
-                    <div class="upload-area" id="xmlUploadArea">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                        <h3>Arraste e solte seu XML aqui</h3>
-                        <p>ou clique para selecionar o arquivo</p>
-                        <input type="file" id="xmlFileInput" class="file-input" accept=".xml">
-                    </div>
-                    <!-- Novo toggle para Moto Zero -->
-                    <div class="form-group" style="margin-top: 15px;">
-                        <label class="option-label">
+                    <!-- Toggle do Modo Manual -->
+                    <div class="manual-mode-toggle">
+                        <div class="option-label">
+                            <span>Modo Automático (XML)</span>
                             <label class="switch">
-                                <input type="checkbox" id="motoZeroToggle">
+                                <input type="checkbox" id="manualModeToggle">
                                 <span class="slider"></span>
                             </label>
-                            <span>Moto Zero</span>
-                        </label>
-                    </div>
-                    <div class="file-info" id="xmlFileInfo">
-                        <h4>Arquivo carregado:</h4>
-                        <p id="xmlFileName"></p>
-                        <p id="xmlFileSize"></p>
+                            <span>Modo Manual</span>
+                        </div>
+                        <p class="contract-field" id="modeStatus">Atualmente: Modo Automático (carregue um XML)</p>
                     </div>
 
+                    <!-- Área de Upload XML (visível apenas no modo automático) -->
+                    <div id="xmlUploadSection">
+                        <div class="upload-area" id="xmlUploadArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <h3>Arraste e solte seu XML aqui</h3>
+                            <p>ou clique para selecionar o arquivo</p>
+                            <input type="file" id="xmlFileInput" class="file-input" accept=".xml">
+                        </div>
+                        
+                        <!-- Toggle para Moto Zero -->
+                        <div class="form-group" style="margin-top: 15px;">
+                            <label class="option-label">
+                                <label class="switch">
+                                    <input type="checkbox" id="motoZeroToggle">
+                                    <span class="slider"></span>
+                                </label>
+                                <span>Moto Zero</span>
+                            </label>
+                        </div>
+                        
+                        <div class="file-info" id="xmlFileInfo">
+                            <h4>Arquivo carregado:</h4>
+                            <p id="xmlFileName"></p>
+                            <p id="xmlFileSize"></p>
+                        </div>
 
-
-                    <div class="veiculo-info" id="veiculoInfo" style="display: none;">
-                        <h3><i class="fas fa-car"></i> Dados do Veículo Extraídos</h3>
-                        <div class="veiculo-details" id="veiculoDetails"></div>
+                        <div class="veiculo-info" id="veiculoInfo" style="display: none;">
+                            <h3><i class="fas fa-car"></i> Dados do Veículo Extraídos</h3>
+                            <div class="veiculo-details" id="veiculoDetails"></div>
+                        </div>
                     </div>
 
+                    <!-- Seção do Modo Manual (visível apenas quando ativado) -->
+                    <div class="manual-mode-section" id="manualModeSection">
+                        <h3><i class="fas fa-keyboard"></i> Dados do Contrato (Modo Manual)</h3>
+                        <div class="two-column-form">
+                            <!-- Coluna 1: Vendedor -->
+                            <div>
+                                <h4>Dados do Vendedor</h4>
+                                <div class="form-group">
+                                    <label for="manualVendedor">Nome do Vendedor</label>
+                                    <input type="text" id="manualVendedor" placeholder="Ex: MOTOLOB LTDA" value="MOTOLOB LTDA">
+                                </div>
+                                <div class="form-group">
+                                    <label for="manualCnpjVendedor">CNPJ</label>
+                                    <input type="text" id="manualCnpjVendedor" placeholder="00.000.000/0000-00" value="42.676.954/0001-69">
+                                </div>
+                                <div class="form-group">
+                                    <label for="manualEnderecoVendedor">Endereço</label>
+                                    <input type="text" id="manualEnderecoVendedor" 
+                                           placeholder="Endereço completo" 
+                                           value="AVENIDA MARECHAL CAMPOS, Nº 459, LOJA 01, BAIRRO DE LOURDES, VITÓRIA/ES">
+                                </div>
+                            </div>
+
+                            <!-- Coluna 2: Comprador -->
+                            <div>
+                                <h4>Dados do Comprador</h4>
+                                <div class="form-group">
+                                    <label for="manualComprador">Nome do Comprador</label>
+                                    <input type="text" id="manualComprador" placeholder="Nome completo">
+                                </div>
+                                <div class="form-group">
+                                    <label for="manualCpfComprador">CPF</label>
+                                    <input type="text" id="manualCpfComprador" placeholder="000.000.000-00">
+                                </div>
+                                <div class="form-group">
+                                    <label for="manualEnderecoComprador">Endereço</label>
+                                    <input type="text" id="manualEnderecoComprador" placeholder="Rua, Número, Bairro">
+                                </div>
+                                <div class="form-group">
+                                    <label for="manualCidadeComprador">Cidade/UF</label>
+                                    <input type="text" id="manualCidadeComprador" placeholder="Cidade/UF">
+                                </div>
+                                <div class="form-group">
+                                    <label for="manualCepComprador">CEP</label>
+                                    <input type="text" id="manualCepComprador" placeholder="00000-000">
+                                </div>
+                                <div class="form-group">
+                                    <label for="manualTelefoneComprador">Telefone</label>
+                                    <input type="text" id="manualTelefoneComprador" placeholder="(00) 00000-0000">
+                                </div>
+                                <div class="form-group">
+                                    <label for="manualEmailComprador">E-mail</label>
+                                    <input type="email" id="manualEmailComprador" placeholder="email@exemplo.com">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dados do Veículo -->
+                        <div style="margin-top: 20px; padding-top: 20px; border-top: 2px dashed #ddd;">
+                            <h4>Dados do Veículo</h4>
+                            <div class="two-column-form">
+                                <div class="form-group">
+                                    <label for="manualMarca">Marca</label>
+                                    <input type="text" id="manualMarca" placeholder="Ex: YAMAHA, HONDA">
+                                </div>
+                                <div class="form-group">
+                                    <label for="manualModelo">Modelo</label>
+                                    <input type="text" id="manualModelo" placeholder="Ex: FACTOR 150, CG 160">
+                                </div>
+                                <div class="form-group">
+                                    <label for="manualCor">Cor</label>
+                                    <input type="text" id="manualCor" placeholder="Ex: PRETA, VERMELHA">
+                                </div>
+                                <div class="form-group">
+                                    <label for="manualCombustivel">Combustível</label>
+                                    <input type="text" id="manualCombustivel" placeholder="Ex: GASOLINA, FLEX" value="GASOLINA">
+                                </div>
+                                <div class="form-group">
+                                    <label for="manualAnoFab">Ano Fabricação</label>
+                                    <input type="text" id="manualAnoFab" placeholder="Ex: 2020">
+                                </div>
+                                <div class="form-group">
+                                    <label for="manualAnoMod">Ano Modelo</label>
+                                    <input type="text" id="manualAnoMod" placeholder="Ex: 2020">
+                                </div>
+                                <div class="form-group">
+                                    <label for="manualPlaca">Placa</label>
+                                    <input type="text" id="manualPlaca" placeholder="Ex: ABC1D23">
+                                </div>
+                                <div class="form-group">
+                                    <label for="manualRenavam">RENAVAM</label>
+                                    <input type="text" id="manualRenavam" placeholder="00000000000">
+                                </div>
+                                <div class="form-group">
+                                    <label for="manualChassi">Chassi</label>
+                                    <input type="text" id="manualChassi" placeholder="9BWZZZ377VT004251">
+                                </div>
+                                <div class="form-group">
+                                    <label for="manualVendedorResponsavel">Vendedor Responsável</label>
+                                    <input type="text" id="manualVendedorResponsavel" placeholder="Nome do vendedor" value="BRUNA LOBATO">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Seção comum (visível em ambos os modos) -->
                     <div class="vendedor-option">
                         <div class="option-label">
                             <span>Usar vendedor base</span>
@@ -638,6 +813,7 @@
                             <label for="quilometragem">Quilometragem (KM)</label>
                             <input type="text" id="quilometragem" placeholder="Ex: 45.000">
                         </div>
+                        
                         <!-- Checkbox para ativar desconto -->
                         <div class="form-group">
                             <label class="option-label">
@@ -649,24 +825,28 @@
                             </label>
                         </div>
 
-                        <!-- Campos de valor e desconto (inicialmente ocultos) -->
+                        <!-- Campos de valor e desconto -->
                         <div id="descontoFields" style="display: none;">
                             <div class="form-group">
                                 <label for="valorMotoInput">Valor da Moto (R$)</label>
-                                <input type="text" id="valorMotoInput" class="money-input" value=""
-                                    placeholder="R$ 0,00">
+                                <input type="text" id="valorMotoInput" class="money-input" value="" placeholder="R$ 0,00">
                             </div>
                             <div class="form-group">
                                 <label for="valorDescontoInput">Valor do Desconto (R$)</label>
-                                <input type="text" id="valorDescontoInput" class="money-input" value=""
-                                    placeholder="R$ 0,00">
+                                <input type="text" id="valorDescontoInput" class="money-input" value="" placeholder="R$ 0,00">
                             </div>
                         </div>
+                        
                         <div class="form-group">
                             <label for="formaPagamentoInput">Forma de Pagamento</label>
-                            <input type="text" id="formaPagamentoInput" placeholder="Ex: À VISTA, PARCELADO, PIX, etc."
-                                value="À VISTA">
+                            <input type="text" id="formaPagamentoInput" placeholder="Ex: À VISTA, PARCELADO, PIX, etc." value="À VISTA">
                         </div>
+                        
+                        <div class="form-group">
+                            <label for="valorContratoInput">Valor do Contrato (R$)</label>
+                            <input type="text" id="valorContratoInput" class="money-input" placeholder="R$ 0,00">
+                        </div>
+                        
                         <div class="form-group">
                             <label for="ipva">Situação do IPVA</label>
                             <select id="ipva">
@@ -674,17 +854,17 @@
                                 <option value="DOCUMENTAÇÃO PAGA">Documentação Paga</option>
                                 <option value="Manual">Manual</option>
                             </select>
-                            <input type="text" id="ipvaManualInput" style="display: none; margin-top: 10px;"
-                                placeholder="Digite o status do IPVA">
+                            <input type="text" id="ipvaManualInput" style="display: none; margin-top: 10px;" placeholder="Digite o status do IPVA">
                         </div>
+                        
                         <div class="form-group">
                             <label for="dataContratoInput">Data do Contrato</label>
                             <input type="date" id="dataContratoInput">
                         </div>
+                        
                         <div class="form-group">
                             <label for="multasInput">Multas Pendentes</label>
-                            <input type="text" id="multasInput" value="SEM MULTAS"
-                                placeholder="Informe as multas pendentes">
+                            <input type="text" id="multasInput" value="SEM MULTAS" placeholder="Informe as multas pendentes">
                         </div>
                     </div>
 
@@ -701,7 +881,7 @@
                 </div>
                 <div class="card-body">
                     <div class="contract-preview" id="contractPreview">
-                        <p>Carregue um arquivo XML para visualizar o contrato gerado automaticamente.</p>
+                        <p>Carregue um arquivo XML ou ative o modo manual para visualizar o contrato gerado automaticamente.</p>
                     </div>
 
                     <div class="file-info" id="contractInfo" style="display: none;">
@@ -725,13 +905,16 @@
     </footer>
 
     <script>
-
-        function showNotification(message, isError = false) {
+        function showNotification(message, isError = false, isInfo = false) {
             notification.textContent = message;
-            notification.classList.remove('error');
+            notification.classList.remove('error', 'info');
 
             if (isError) {
                 notification.classList.add('error');
+            } else if (isInfo) {
+                notification.classList.add('info');
+            } else {
+                notification.classList.remove('error', 'info');
             }
 
             notification.classList.add('show');
@@ -746,14 +929,12 @@
             const wakeUpUrl = 'https://gerador-contratos-backend-ybag.onrender.com/wake-up';
 
             try {
-                // Primeiro tenta uma requisição HEAD (mais leve)
                 let response = await fetch(wakeUpUrl, {
                     method: 'HEAD',
                     mode: 'cors',
                     cache: 'no-cache'
                 });
 
-                // Se falhar, tenta com GET
                 if (!response.ok) {
                     response = await fetch(wakeUpUrl, {
                         method: 'GET',
@@ -763,7 +944,6 @@
                 }
 
                 if (response.ok) {
-                    showNotification('Servidor ativo e pronto para uso!');
                     console.log('Servidor ativo e pronto');
                     return true;
                 }
@@ -771,25 +951,21 @@
                 throw new Error(`Status: ${response.status}`);
 
             } catch (error) {
-                showNotification(`Servidor demorando para responder: ${error.message}`, true);
                 console.warn('Servidor demorando para responder...', error);
-                // Tenta novamente após 5 segundos
                 await new Promise(resolve => setTimeout(resolve, 5000));
                 return wakeUpServer();
             }
         }
 
-
         // Inicia o servidor silenciosamente quando a página abre
         window.addEventListener('load', () => {
-            // Inicia silenciosamente (sem mostrar para o usuário)
             wakeUpServer();
-
-            // Mantém o servidor ativo (chama a cada 10 minutos)
             setInterval(wakeUpServer, 10 * 60 * 1000);
         });
+
         document.addEventListener('DOMContentLoaded', function () {
-            // Elementos DOM
+            // Elementos DOM principais
+            const xmlUploadSection = document.getElementById('xmlUploadSection');
             const xmlUploadArea = document.getElementById('xmlUploadArea');
             const xmlFileInput = document.getElementById('xmlFileInput');
             const xmlFileInfo = document.getElementById('xmlFileInfo');
@@ -811,6 +987,34 @@
             const quilometragemInput = document.getElementById('quilometragem');
             const descontoInput = document.getElementById('valorDescontoInput');
             const dataContratoInput = document.getElementById('dataContratoInput');
+            const valorContratoInput = document.getElementById('valorContratoInput');
+
+            // Elementos do modo manual
+            const manualModeToggle = document.getElementById('manualModeToggle');
+            const manualModeSection = document.getElementById('manualModeSection');
+            const modeStatus = document.getElementById('modeStatus');
+            
+            // Campos do modo manual
+            const manualVendedor = document.getElementById('manualVendedor');
+            const manualCnpjVendedor = document.getElementById('manualCnpjVendedor');
+            const manualEnderecoVendedor = document.getElementById('manualEnderecoVendedor');
+            const manualComprador = document.getElementById('manualComprador');
+            const manualCpfComprador = document.getElementById('manualCpfComprador');
+            const manualEnderecoComprador = document.getElementById('manualEnderecoComprador');
+            const manualCidadeComprador = document.getElementById('manualCidadeComprador');
+            const manualCepComprador = document.getElementById('manualCepComprador');
+            const manualTelefoneComprador = document.getElementById('manualTelefoneComprador');
+            const manualEmailComprador = document.getElementById('manualEmailComprador');
+            const manualMarca = document.getElementById('manualMarca');
+            const manualModelo = document.getElementById('manualModelo');
+            const manualCor = document.getElementById('manualCor');
+            const manualCombustivel = document.getElementById('manualCombustivel');
+            const manualAnoFab = document.getElementById('manualAnoFab');
+            const manualAnoMod = document.getElementById('manualAnoMod');
+            const manualPlaca = document.getElementById('manualPlaca');
+            const manualRenavam = document.getElementById('manualRenavam');
+            const manualChassi = document.getElementById('manualChassi');
+            const manualVendedorResponsavel = document.getElementById('manualVendedorResponsavel');
 
             // Estado da aplicação
             const appState = {
@@ -822,6 +1026,7 @@
                 valorMoto: 0,
                 valorDesconto: 0,
                 isMotoZero: false,
+                isManualMode: false,
                 anoAtual: new Date().getFullYear(),
                 marcasMotos: [
                     "YAMAHA", "HONDA", "KAWASAKI", "SUZUKI", "BMW",
@@ -832,19 +1037,39 @@
                 ]
             };
 
-            // Event Listeners
+            // Event Listeners principais
             xmlUploadArea.addEventListener('click', () => xmlFileInput.click());
             xmlFileInput.addEventListener('change', handleFileUpload);
             generateBtn.addEventListener('click', generateContract);
             downloadBtn.addEventListener('click', downloadContract);
             vendedorToggle.addEventListener('change', toggleVendedorMode);
             ipvaSelect.addEventListener('change', toggleIpvaManualInput);
-            multasInput.addEventListener('input', updateContractIfExists);
-            formaPagamentoInput.addEventListener('input', updateContractIfExists);
-            ipvaManualInput.addEventListener('input', updateContractIfExists);
-            quilometragemInput.addEventListener('input', updateContractIfExists);
-            descontoInput.addEventListener('input', updateContractIfExists);
-            dataContratoInput.addEventListener('change', updateContractIfExists);
+            
+            // Event Listeners para atualização em tempo real
+            const updateFields = [multasInput, formaPagamentoInput, ipvaManualInput, 
+                                quilometragemInput, descontoInput, dataContratoInput,
+                                valorContratoInput];
+            
+            updateFields.forEach(field => {
+                if (field) field.addEventListener('input', updateContractIfExists);
+            });
+
+            // Event Listeners para campos do modo manual
+            const manualFields = [
+                manualVendedor, manualCnpjVendedor, manualEnderecoVendedor,
+                manualComprador, manualCpfComprador, manualEnderecoComprador,
+                manualCidadeComprador, manualCepComprador, manualTelefoneComprador,
+                manualEmailComprador, manualMarca, manualModelo, manualCor,
+                manualCombustivel, manualAnoFab, manualAnoMod, manualPlaca,
+                manualRenavam, manualChassi, manualVendedorResponsavel
+            ];
+            
+            manualFields.forEach(field => {
+                field.addEventListener('input', updateContractIfExists);
+            });
+
+            // Toggle do modo manual
+            manualModeToggle.addEventListener('change', toggleManualMode);
 
             // Drag and drop
             ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -864,7 +1089,6 @@
             });
 
             // Listener para o toggle "Moto Zero"
-            // Adicione este código ao listener do toggle "Moto Zero"
             document.getElementById('motoZeroToggle').addEventListener('change', function () {
                 appState.isMotoZero = this.checked;
                 const vendedorOption = document.querySelector('.vendedor-option');
@@ -879,6 +1103,67 @@
             });
 
             xmlUploadArea.addEventListener('drop', handleDrop, false);
+
+            // Toggle do desconto
+            document.getElementById('descontoToggle').addEventListener('change', function () {
+                appState.aplicarDesconto = this.checked;
+                document.getElementById('descontoFields').style.display = this.checked ? 'block' : 'none';
+                updateValores();
+            });
+
+            // Formatação monetária
+            document.querySelectorAll('.money-input').forEach(input => {
+                input.addEventListener('focus', function () {
+                    this.value = this.value.replace(/[^\d]/g, '');
+                    this.setSelectionRange(this.value.length, this.value.length);
+                });
+
+                input.addEventListener('input', function () {
+                    formatarMoedaEmTempoReal(this);
+                });
+
+                input.addEventListener('blur', function () {
+                    formatarMoedaFinal(this);
+                    updateValores();
+                });
+            });
+
+            // Função para alternar entre modo manual e automático
+            function toggleManualMode() {
+                appState.isManualMode = this.checked;
+                
+                if (appState.isManualMode) {
+                    // Ativar modo manual
+                    xmlUploadSection.style.display = 'none';
+                    manualModeSection.classList.add('active');
+                    modeStatus.textContent = 'Atualmente: Modo Manual (preencha os dados abaixo)';
+                    modeStatus.parentElement.style.backgroundColor = '#e8f5e9';
+                    showNotification('Modo Manual ativado. Preencha os dados do contrato.', false, true);
+                    
+                    // Configurar data atual como padrão
+                    const today = new Date().toISOString().split('T')[0];
+                    dataContratoInput.value = today;
+                    valorContratoInput.value = 'R$ 0,00';
+                    
+                } else {
+                    // Ativar modo automático
+                    xmlUploadSection.style.display = 'block';
+                    manualModeSection.classList.remove('active');
+                    modeStatus.textContent = 'Atualmente: Modo Automático (carregue um XML)';
+                    modeStatus.parentElement.style.backgroundColor = '#fff3cd';
+                    showNotification('Modo Automático ativado. Carregue um arquivo XML.', false, true);
+                }
+                
+                // Limpar dados anteriores
+                if (!appState.isManualMode) {
+                    appState.xmlData = null;
+                    appState.veiculoData = {};
+                    contractInfo.style.display = 'none';
+                    veiculoInfo.style.display = 'none';
+                    xmlFileInfo.style.display = 'none';
+                    contractPreview.innerHTML = '<p>Carregue um arquivo XML para visualizar o contrato gerado automaticamente.</p>';
+                }
+            }
 
             // Funções principais
             function handleFileUpload() {
@@ -908,8 +1193,12 @@
 
                                 displayVeiculoData(appState.veiculoData);
                                 formaPagamentoInput.value = appState.xmlData.formaPagamento;
-
-                                // Corrigido: Usa a data do XML diretamente sem conversão
+                                
+                                // Preencher valor do contrato automaticamente
+                                const valor = appState.xmlData.produto.valor;
+                                valorContratoInput.value = formatarNumeroParaMoeda(valor);
+                                
+                                // Configurar data
                                 dataContratoInput.value = appState.xmlData.dataEmissao;
 
                                 showNotification('XML processado com sucesso! Os dados foram extraídos.');
@@ -926,134 +1215,126 @@
                 }
             }
 
-            // Adicione esses listeners:
-            document.getElementById('descontoToggle').addEventListener('change', function () {
-                appState.aplicarDesconto = this.checked;
-                document.getElementById('descontoFields').style.display = this.checked ? 'block' : 'none';
-                updateValores();
-            });
-
-            // Formatação monetária
-            document.querySelectorAll('.money-input').forEach(input => {
-                // Ao focar no campo, mantém os números mas remove formatação temporariamente
-                input.addEventListener('focus', function () {
-                    this.value = this.value.replace(/[^\d]/g, '');
-                    this.setSelectionRange(this.value.length, this.value.length);
-                });
-
-                // Formata em tempo real durante a digitação
-                input.addEventListener('input', function () {
-                    formatarMoedaEmTempoReal(this);
-                });
-
-                // Garante formatação correta ao sair do campo
-                input.addEventListener('blur', function () {
-                    formatarMoedaFinal(this);
-                    updateValores();
-                });
-            });
-
-            // Função para formatação em tempo real
-            function formatarMoedaEmTempoReal(elemento) {
-                let valor = elemento.value.replace(/\D/g, '');
-
-                // Adiciona zeros à esquerda para centavos
-                while (valor.length < 3) {
-                    valor = '0' + valor;
-                }
-
-                // Formatação básica durante a digitação
-                const parteInteira = valor.slice(0, -2).replace(/^0+/, '') || '0';
-                const centavos = valor.slice(-2);
-
-                // Formata com separadores de milhar
-                const parteInteiraFormatada = parteInteira.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-
-                elemento.value = `R$ ${parteInteiraFormatada},${centavos}`;
-
-                // Mantém o cursor na posição correta
-                const cursorPos = elemento.selectionStart;
-                if (cursorPos < 3) {
-                    elemento.setSelectionRange(4, 4);
-                }
-            }
-
-            // Função para formatação final (completa)
-            function formatarMoedaFinal(elemento) {
-                let valor = elemento.value.replace(/\D/g, '');
-
-                // Garante que temos pelo menos "0,00"
-                if (valor === '') valor = '000';
-                while (valor.length < 3) {
-                    valor = '0' + valor;
-                }
-
-                const parteInteira = valor.slice(0, -2).replace(/^0+/, '') || '0';
-                const centavos = valor.slice(-2);
-
-                // Formatação completa com separadores de milhar
-                const parteInteiraFormatada = parteInteira.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-
-                elemento.value = `R$ ${parteInteiraFormatada},${centavos}`;
-            }
-
-            // Função para converter o valor formatado para número
-            function converterParaNumero(valorFormatado) {
-                return parseFloat(
-                    valorFormatado
-                        .replace('R$ ', '')
-                        .replace(/\./g, '')
-                        .replace(',', '.')
-                ) || 0;
-            }
-
-            function formatarMoeda(elemento) {
-                let valor = elemento.value.replace(/\D/g, '');
-                valor = (valor / 100).toFixed(2) + '';
-                valor = valor.replace(".", ",");
-                valor = valor.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
-                elemento.value = `R$ ${valor}`;
-            }
-
-            function updateValores() {
-                if (appState.aplicarDesconto) {
-                    appState.valorMoto = parseFloat(
-                        document.getElementById('valorMotoInput').value
-                            .replace('R$ ', '')
-                            .replace('.', '')
-                            .replace(',', '.')
-                    ) || 0;
-
-                    appState.valorDesconto = parseFloat(
-                        document.getElementById('valorDescontoInput').value
-                            .replace('R$ ', '')
-                            .replace('.', '')
-                            .replace(',', '.')
-                    ) || 0;
-
-                    // Atualize o contrato se necessário
-                    if (appState.xmlData) generateContract();
-                }
-            }
-
-
             function generateContract() {
-                if (!appState.xmlData) {
-                    showNotification('Por favor, carregue um XML primeiro.', true);
-                    return;
+                let contractData;
+                
+                if (appState.isManualMode) {
+                    // Validar campos obrigatórios no modo manual
+                    if (!validateManualFields()) {
+                        showNotification('Preencha todos os campos obrigatórios do modo manual.', true);
+                        return;
+                    }
+                    
+                    contractData = generateContractDataFromManual();
+                } else {
+                    // Modo automático com XML
+                    if (!appState.xmlData) {
+                        showNotification('Por favor, carregue um XML primeiro.', true);
+                        return;
+                    }
+                    
+                    contractData = generateContractDataFromXML();
                 }
 
+                appState.contractData = contractData;
+                contractPreview.innerHTML = generateContractHTML(appState.contractData);
+                contractInfo.style.display = 'block';
+                showNotification('CONTRATO GERADO COM SUCESSO!');
+            }
+
+            function generateContractDataFromManual() {
                 const quilometragem = quilometragemInput.value || '45.000';
-                // const desconto = parseFloat((descontoInput.value || '0,00').replace('.', '').replace(',', '.')) || 0;
+                const valorContrato = converterParaNumero(valorContratoInput.value);
+                
+                const ipvaValue = ipvaSelect.value;
+                const ipvaManual = ipvaManualInput.value;
+                const multas = multasInput.value || 'SEM MULTAS';
+                const formaPagamento = formaPagamentoInput.value || 'À VISTA';
+                
+                // Calcular desconto se aplicável
+                let valorFinal = valorContrato;
+                let descontoValor = 0;
+                
+                if (appState.aplicarDesconto) {
+                    appState.valorMoto = converterParaNumero(document.getElementById('valorMotoInput').value);
+                    appState.valorDesconto = converterParaNumero(document.getElementById('valorDescontoInput').value);
+                    valorFinal = appState.valorMoto - appState.valorDesconto;
+                    descontoValor = appState.valorDesconto;
+                }
+
+                let ipvaTexto;
+                if (ipvaValue === 'Manual') {
+                    ipvaTexto = ipvaManual.toUpperCase();
+                } else if (ipvaValue === 'IPVA PAGO') {
+                    ipvaTexto = `IPVA ${appState.anoAtual} PAGO`;
+                } else if (ipvaValue === 'DOCUMENTAÇÃO PAGA') {
+                    ipvaTexto = `${appState.anoAtual} PAGO`;
+                } else {
+                    ipvaTexto = ipvaValue;
+                }
+
+                // Obtém a data selecionada
+                const dataSelecionada = dataContratoInput.value || new Date().toISOString().split('T')[0];
+                const [ano, mes, dia] = dataSelecionada.split('-');
+                const dataFormatada = `${dia}/${mes}/${ano}`;
+                const mesExtenso = getMonthName(dataFormatada);
+
+                return {
+                    vendedor: manualVendedor.value.toUpperCase(),
+                    cnpjVendedor: formatCnpj(manualCnpjVendedor.value.replace(/\D/g, '')),
+                    enderecoVendedor: manualEnderecoVendedor.value.toUpperCase(),
+                    comprador: manualComprador.value.toUpperCase(),
+                    cpfComprador: formatCpf(manualCpfComprador.value.replace(/\D/g, '')),
+                    enderecoComprador: manualEnderecoComprador.value.toUpperCase(),
+                    cidadeComprador: manualCidadeComprador.value.split('/')[0]?.toUpperCase() || '',
+                    ufComprador: manualCidadeComprador.value.split('/')[1]?.toUpperCase() || '',
+                    cepComprador: formatCep(manualCepComprador.value.replace(/\D/g, '')),
+                    telefoneComprador: formatTelefone(manualTelefoneComprador.value.replace(/\D/g, '')),
+                    emailComprador: manualEmailComprador.value.toUpperCase(),
+                    marca: manualMarca.value.toUpperCase(),
+                    modelo: manualModelo.value.toUpperCase(),
+                    cor: manualCor.value.toUpperCase(),
+                    combustivel: manualCombustivel.value.toUpperCase(),
+                    anoFab: manualAnoFab.value,
+                    anoMod: manualAnoMod.value,
+                    placa: manualPlaca.value.toUpperCase(),
+                    renavam: manualRenavam.value,
+                    chassi: manualChassi.value.toUpperCase(),
+                    valor: appState.aplicarDesconto ? 
+                        appState.valorMoto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) :
+                        valorContrato.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                    desconto: descontoValor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                    valorFinal: valorFinal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                    formaPagamento: formaPagamento.toUpperCase(),
+                    dataEmissao: dataFormatada,
+                    vendedorResponsavel: manualVendedorResponsavel.value.toUpperCase() || "BRUNA LOBATO",
+                    quilometragem: quilometragem,
+                    ipva: ipvaTexto,
+                    multas: multas.toUpperCase(),
+                    dia: dia,
+                    mes: mesExtenso,
+                    ano: ano
+                };
+            }
+
+            function generateContractDataFromXML() {
+                const quilometragem = quilometragemInput.value || '45.000';
+                const valorContrato = converterParaNumero(valorContratoInput.value);
+                
                 const ipvaValue = ipvaSelect.value;
                 const ipvaManual = ipvaManualInput.value;
                 const multas = multasInput.value || 'SEM MULTAS';
                 const formaPagamento = formaPagamentoInput.value || appState.xmlData.formaPagamento;
-                const desconto = appState.aplicarDesconto ? appState.valorDesconto : 0;
-                const valorFinal = appState.aplicarDesconto ?
-                    (appState.valorMoto - appState.valorDesconto) :
-                    appState.xmlData.produto.valor;
-
+                
+                let descontoValor = 0;
+                let valorFinal = valorContrato;
+                
+                if (appState.aplicarDesconto) {
+                    appState.valorMoto = converterParaNumero(document.getElementById('valorMotoInput').value);
+                    appState.valorDesconto = converterParaNumero(document.getElementById('valorDescontoInput').value);
+                    valorFinal = appState.valorMoto - appState.valorDesconto;
+                    descontoValor = appState.valorDesconto;
+                }
 
                 let ipvaTexto;
                 if (ipvaValue === 'Manual') {
@@ -1068,13 +1349,12 @@
 
                 const { marca, modelo } = extrairMarcaModelo(appState.xmlData.produto.descricao);
 
-                // Obtém a data selecionada ou usa a do XML
                 const dataSelecionada = dataContratoInput.value || appState.xmlData.dataEmissao;
                 const [ano, mes, dia] = dataSelecionada.split('-');
                 const dataFormatada = `${dia}/${mes}/${ano}`;
                 const mesExtenso = getMonthName(dataFormatada);
 
-                appState.contractData = {
+                return {
                     vendedor: appState.vendedorMode === 'base' ? 'MOTOLOB LTDA' : appState.xmlData.emitente.nome,
                     cnpjVendedor: appState.vendedorMode === 'base' ? '42.676.954/0001-69' : formatCnpj(appState.xmlData.emitente.cnpj),
                     enderecoVendedor: appState.vendedorMode === 'base' ?
@@ -1097,29 +1377,21 @@
                     placa: appState.veiculoData.placa,
                     renavam: appState.veiculoData.renavam,
                     chassi: appState.veiculoData.chassi,
-                    // valor: appState.xmlData.produto.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                    // desconto: desconto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                    // valorFinal: (appState.xmlData.produto.valor - desconto).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
                     valor: appState.aplicarDesconto ?
                         appState.valorMoto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) :
-                        appState.xmlData.produto.valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
-                    desconto: desconto.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                        valorContrato.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+                    desconto: descontoValor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
                     valorFinal: valorFinal.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
                     formaPagamento: formaPagamento,
                     dataEmissao: dataFormatada,
                     vendedorResponsavel: extrairVendedorResponsavel(appState.xmlData) || "BRUNA LOBATO",
                     quilometragem: quilometragem,
-
                     ipva: ipvaTexto,
                     multas: multas.toUpperCase(),
                     dia: dia,
                     mes: mesExtenso,
                     ano: ano
                 };
-
-                contractPreview.innerHTML = generateContractHTML(appState.contractData);
-                contractInfo.style.display = 'block';
-                showNotification('CONTRATO GERADO COM SUCESSO!');
             }
 
             async function downloadContract() {
@@ -1164,20 +1436,50 @@
             }
 
             // Funções auxiliares
+            function validateManualFields() {
+                const requiredFields = [
+                    { field: manualComprador, name: 'Nome do Comprador' },
+                    { field: manualCpfComprador, name: 'CPF do Comprador' },
+                    { field: manualEnderecoComprador, name: 'Endereço do Comprador' },
+                    { field: manualCidadeComprador, name: 'Cidade/UF do Comprador' },
+                    { field: manualMarca, name: 'Marca do Veículo' },
+                    { field: manualModelo, name: 'Modelo do Veículo' },
+                    { field: valorContratoInput, name: 'Valor do Contrato' }
+                ];
+
+                for (const required of requiredFields) {
+                    if (!required.field.value.trim()) {
+                        showNotification(`Campo obrigatório: ${required.name}`, true);
+                        required.field.focus();
+                        return false;
+                    }
+                }
+
+                // Validar CPF
+                const cpf = manualCpfComprador.value.replace(/\D/g, '');
+                if (cpf.length !== 11) {
+                    showNotification('CPF inválido. Deve conter 11 dígitos.', true);
+                    manualCpfComprador.focus();
+                    return false;
+                }
+
+                return true;
+            }
+
             function toggleVendedorMode() {
                 appState.vendedorMode = this.checked ? 'nota' : 'base';
                 vendedorStatus.textContent = `Atualmente: ${this.checked ? 'Vendedor da nota será utilizado' : 'Vendedor base será utilizado'}`;
                 vendedorStatus.parentElement.className = this.checked ? 'vendedor-option vendedor-nota' : 'vendedor-option vendedor-base';
-                if (appState.xmlData) generateContract();
+                if (appState.xmlData && !appState.isManualMode) generateContract();
             }
 
             function toggleIpvaManualInput() {
                 ipvaManualInput.style.display = this.value === 'Manual' ? 'block' : 'none';
-                if (appState.xmlData) generateContract();
+                updateContractIfExists();
             }
 
             function updateContractIfExists() {
-                if (appState.xmlData) generateContract();
+                if (appState.xmlData || appState.isManualMode) generateContract();
             }
 
             function preventDefaults(e) {
@@ -1192,6 +1494,80 @@
                 handleFileUpload();
             }
 
+            // Funções de formatação monetária
+            function formatarMoedaEmTempoReal(elemento) {
+                let valor = elemento.value.replace(/\D/g, '');
+
+                while (valor.length < 3) {
+                    valor = '0' + valor;
+                }
+
+                const parteInteira = valor.slice(0, -2).replace(/^0+/, '') || '0';
+                const centavos = valor.slice(-2);
+                const parteInteiraFormatada = parteInteira.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+                elemento.value = `R$ ${parteInteiraFormatada},${centavos}`;
+
+                const cursorPos = elemento.selectionStart;
+                if (cursorPos < 3) {
+                    elemento.setSelectionRange(4, 4);
+                }
+            }
+
+            function formatarMoedaFinal(elemento) {
+                let valor = elemento.value.replace(/\D/g, '');
+
+                if (valor === '') valor = '000';
+                while (valor.length < 3) {
+                    valor = '0' + valor;
+                }
+
+                const parteInteira = valor.slice(0, -2).replace(/^0+/, '') || '0';
+                const centavos = valor.slice(-2);
+                const parteInteiraFormatada = parteInteira.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+                elemento.value = `R$ ${parteInteiraFormatada},${centavos}`;
+            }
+
+            function formatarNumeroParaMoeda(numero) {
+                return numero.toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                });
+            }
+
+            function converterParaNumero(valorFormatado) {
+                return parseFloat(
+                    valorFormatado
+                        .replace('R$ ', '')
+                        .replace(/\./g, '')
+                        .replace(',', '.')
+                ) || 0;
+            }
+
+            function updateValores() {
+                if (appState.aplicarDesconto) {
+                    appState.valorMoto = converterParaNumero(
+                        document.getElementById('valorMotoInput').value
+                    );
+                    appState.valorDesconto = converterParaNumero(
+                        document.getElementById('valorDescontoInput').value
+                    );
+
+                    if (appState.xmlData || appState.isManualMode) generateContract();
+                }
+            }
+
+            // As funções extractXmlData, extractVeiculoData, extractXmlDataMotoZero,
+            // extractVeiculoDataMotoZero, displayVeiculoData, e outras funções auxiliares
+            // permanecem EXATAMENTE como estavam no código original...
+
+            // [IMPORTANTE: Todas as outras funções do código original (extractXmlData, 
+            // extractVeiculoData, formatCpf, formatCnpj, formatCep, formatTelefone, 
+            // getMonthName, extrairAnoFab, extrairAnoMod, extrairVendedorResponsavel, 
+            // generateContractHTML, etc.) devem ser mantidas EXATAMENTE como estavam]
+
+            // Função extractXmlData (mantida do original)
             function extractXmlData(xmlDoc) {
                 const ns = 'http://www.portalfiscal.inf.br/nfe';
                 const nsResolver = function (prefix) {
@@ -1242,7 +1618,7 @@
                     },
                     total: parseFloat(total.textContent),
                     formaPagamento: "À VISTA".toUpperCase(),
-                    dataEmissao: dataEmissao.textContent.substring(0, 10) // Formato AAAA-MM-DD
+                    dataEmissao: dataEmissao.textContent.substring(0, 10)
                 };
             }
 
@@ -1319,22 +1695,18 @@
                     },
                     total: parseFloat(total.textContent),
                     formaPagamento: "À VISTA".toUpperCase(),
-                    dataEmissao: dataEmissao.textContent.substring(0, 10) // Formato AAAA-MM-DD
+                    dataEmissao: dataEmissao.textContent.substring(0, 10)
                 };
             }
 
-            // Função para extrair dados do veículo de moto zero
             function extractVeiculoDataMotoZero(xmlDoc) {
                 const veicProd = xmlDoc.getElementsByTagName('veicProd')[0];
                 const infAdProd = xmlDoc.getElementsByTagName('infAdProd')[0];
                 const ide = xmlDoc.getElementsByTagName('ide')[0];
                 const infAdProdText = infAdProd ? infAdProd.textContent : '';
 
-                // Função melhorada para extrair dados considerando diferentes padrões
                 const extrairDado = (texto, chave) => {
-                    // Padrão 1: "CHAVE: VALOR" (para campos como PINTURA, TIPO VEICULO)
                     const regexPadrao1 = new RegExp(`${chave}:\\s*([^,]+)`);
-                    // Padrão 2: "CHAVE VALOR" (para campos como No MOTOR)
                     const regexPadrao2 = new RegExp(`${chave}\\s+([^,]+)`);
 
                     let match = texto.match(regexPadrao1) || texto.match(regexPadrao2);
@@ -1342,7 +1714,7 @@
                 };
 
                 return {
-                    marca: 'YAMAHA', // Fixo ou extraído do XML
+                    marca: 'YAMAHA',
                     modelo: xmlDoc.getElementsByTagName('xProd')[0].textContent.split(',')[0].toUpperCase(),
                     serie: ide ? ide.querySelector('serie').textContent : extrairDado(infAdProdText, 'SERIAL'),
                     codigo_cor: veicProd ? veicProd.querySelector('cCor').textContent : extrairDado(infAdProdText, 'CÓDIGO COR'),
@@ -1361,12 +1733,11 @@
                     passageiros: extrairDado(infAdProdText, 'CAP DE PASSAGEIROS'),
                     especie: extrairDado(infAdProdText, 'ESPECIE'),
                     chassi: veicProd ? veicProd.querySelector('chassi').textContent : extrairDado(infAdProdText, 'CHASSI'),
-                    placa: 'NOVA', // Moto zero não tem placa
+                    placa: 'NOVA',
                     anoFab: veicProd ? veicProd.querySelector('anoFab').textContent : extrairDado(infAdProdText, 'ANO FAB'),
                     anoMod: veicProd ? veicProd.querySelector('anoMod').textContent : extrairDado(infAdProdText, 'ANO MOD')
                 };
             }
-
 
             function displayVeiculoData(data) {
                 veiculoDetails.innerHTML = '';
@@ -1427,7 +1798,6 @@
         `;
                 });
 
-                // Adiciona evento de cópia aos botões
                 document.querySelectorAll('.copy-btn').forEach(btn => {
                     btn.addEventListener('click', () => {
                         const value = btn.getAttribute('data-value');
@@ -1450,8 +1820,6 @@
                 const i = Math.floor(Math.log(bytes) / Math.log(k));
                 return parseFloat((bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i]);
             }
-
-
 
             function extrairMarcaModelo(descricao) {
                 const regexAno = /\(\d{4}\/\d{4}\)/;
@@ -1523,20 +1891,12 @@
                 return telefone;
             }
 
-            function formatDate(dateString) {
-                if (!dateString) return '';
-                // Assume que a data vem no formato AAAA-MM-DD
-                const [ano, mes, dia] = dateString.split('-');
-                return `${dia}/${mes}/${ano}`;
-            }
-
             function getMonthName(dateString) {
                 const months = [
                     'JANEIRO', 'FEVEREIRO', 'MARÇO', 'ABRIL', 'MAIO', 'JUNHO',
                     'JULHO', 'AGOSTO', 'SETEMBRO', 'OUTUBRO', 'NOVEMBRO', 'DEZEMBRO'
                 ];
 
-                // Assume que a data vem no formato DD/MM/AAAA
                 const parts = dateString.split('/');
                 if (parts.length < 2) return '';
 
@@ -1660,6 +2020,9 @@
             // Initialize with default values
             function init() {
                 multasInput.value = 'SEM MULTAS';
+                const today = new Date().toISOString().split('T')[0];
+                dataContratoInput.value = today;
+                valorContratoInput.value = 'R$ 0,00';
             }
 
             init();
@@ -1668,4 +2031,3 @@
 </body>
 
 </html>
-
