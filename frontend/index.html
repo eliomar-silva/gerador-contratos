@@ -1527,27 +1527,34 @@
             return;
           }
 
-          // Verificar se todos os campos obrigatórios estão preenchidos
-          const requiredFields = [
-            manualComprador,
-            manualCpfComprador,
-            manualLogradouroComprador,
-            manualNumeroComprador,
-            manualBairroComprador,
-            manualCidadeComprador,
-            manualUfComprador,
-            manualMarca,
-            manualModelo,
-            valorContratoInput,
-            manualAnoFab,
-            manualAnoMod,
-          ];
+          if (appState.isManualMode) {
+            // Modo manual: verificar se todos os campos obrigatórios estão preenchidos
+            const requiredFields = [
+              manualComprador,
+              manualCpfComprador,
+              manualLogradouroComprador,
+              manualNumeroComprador,
+              manualBairroComprador,
+              manualCidadeComprador,
+              manualUfComprador,
+              manualMarca,
+              manualModelo,
+              valorContratoInput,
+              manualAnoFab,
+              manualAnoMod,
+            ];
 
-          const allFilled = requiredFields.every((field) => {
-            return field.value && field.value.trim() !== "";
-          });
+            const allFilled = requiredFields.every((field) => {
+              return field.value && field.value.trim() !== "";
+            });
 
-          downloadBtn.disabled = !allFilled;
+            downloadBtn.disabled = !allFilled;
+          } else {
+            // Modo automático: só precisa ter o contrato salvo e dados XML
+            downloadBtn.disabled = !(
+              appState.xmlData && appState.isContractSaved
+            );
+          }
         }
 
         // Funções principais
