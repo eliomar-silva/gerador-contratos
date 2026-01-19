@@ -1503,7 +1503,7 @@
         function populateYearSelects() {
           const anoAtual = new Date().getFullYear();
           const anoMaximo = anoAtual + 1;
-          const anoMinimo = 2020;
+          const anoMinimo = 2000;
 
           // Limpar selects
           manualAnoFab.innerHTML = "";
@@ -1591,21 +1591,38 @@
                   formaPagamentoInput.value = appState.xmlData.formaPagamento;
 
                   // Preencher valor do contrato automaticamente
-                  const valor = appState.xmlData.produto.valor;
-                  valorContratoInput.value = formatarNumeroParaMoeda(valor);
+                  let valor = 0;
+
+                  if (
+                    appState.xmlData.produto &&
+                    appState.xmlData.produto.valor
+                  ) {
+                    valor = parseFloat(appState.xmlData.produto.valor);
+                  } else if (appState.xmlData.total) {
+                    valor = parseFloat(appState.xmlData.total);
+                  }
+
+                  if (valor > 0) {
+                    // Preencher o input
+                    valorContratoInput.value = formatarNumeroParaMoeda(valor);
+                    // Atualizar o valor no appState para ser usado no contrato
+                    appState.xmlData.produto.valor = valor;
+                    appState.xmlData.total = valor;
+                  }
 
                   // Configurar data
-                  dataContratoInput.value = appState.xmlData.dataEmissao;
+                  dataContratoInput.value =
+                    appState.xmlData.dataEmissao ||
+                    new Date().toISOString().split("T")[0];
 
                   showNotification(
                     "XML processado com sucesso! Os dados foram extraídos.",
                   );
 
-                  // Gerar contrato automaticamente
-                  if (!appState.isManualMode) {
-                    generateContract();
-                  }
+                  // GERAR CONTRATO IMEDIATAMENTE
+                  generateContractImmediately();
                 } catch (error) {
+                  console.error("Erro ao processar XML:", error);
                   showNotification(
                     "Erro ao processar o XML: " + error.message,
                     true,
@@ -1620,6 +1637,33 @@
                 true,
               );
             }
+          }
+        }
+
+        // Nova função para gerar contrato imediatamente após XML
+        function generateContractImmediately() {
+          if (!appState.xmlData || appState.isManualMode) {
+            return;
+          }
+
+          try {
+            const contractData = generateContractDataFromXML();
+
+            // ATUALIZAR TODOS OS CAMPOS DO CONTRATO
+            appState.contractData = contractData;
+            appState.isContractSaved = true;
+
+            // Atualizar preview
+            contractPreview.innerHTML = generateContractHTML(contractData);
+            contractInfo.style.display = "block";
+
+            // Habilitar botão de download
+            checkIfCanDownload();
+
+            showNotification("CONTRATO GERADO COM SUCESSO!");
+          } catch (error) {
+            console.error("Erro ao gerar contrato:", error);
+            showNotification("Erro ao gerar contrato: " + error.message, true);
           }
         }
 
@@ -1812,6 +1856,9 @@
           const dataFormatada = `${dia}/${mes}/${ano}`;
           const mesExtenso = getMonthName(dataFormatada);
 
+          // USAR O VALOR DO XML (já atualizado)
+          const valor = appState.xmlData.produto.valor || valorContrato;
+
           return {
             vendedor:
               appState.vendedorMode === "base"
@@ -1853,7 +1900,7 @@
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 })
-              : valorContrato.toLocaleString("pt-BR", {
+              : valor.toLocaleString("pt-BR", {
                   minimumFractionDigits: 2,
                   maximumFractionDigits: 2,
                 }),
@@ -2040,9 +2087,15 @@
         }
 
         function formatarNumeroParaMoeda(numero) {
-          return numero.toLocaleString("pt-BR", {
+          // Garantir que é um número
+          const valor = parseFloat(numero) || 0;
+
+          // Formatar como moeda brasileira
+          return valor.toLocaleString("pt-BR", {
             style: "currency",
             currency: "BRL",
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
           });
         }
 
@@ -2072,6 +2125,8 @@
 
         // Função extractXmlData (mantida do original)
         function extractXmlData(xmlDoc) {
+          console.log("Iniciando extração de dados XML...");
+
           const ns = "http://www.portalfiscal.inf.br/nfe";
           const nsResolver = function (prefix) {
             const ns = {
@@ -2080,103 +2135,157 @@
             return ns[prefix] || null;
           };
 
-          const emitente = xmlDoc.evaluate(
-            "//nfe:emit",
-            xmlDoc,
-            nsResolver,
-            XPathResult.FIRST_ORDERED_NODE_TYPE,
-            null,
-          ).singleNodeValue;
-          const destinatario = xmlDoc.evaluate(
-            "//nfe:dest",
-            xmlDoc,
-            nsResolver,
-            XPathResult.FIRST_ORDERED_NODE_TYPE,
-            null,
-          ).singleNodeValue;
-          const produto = xmlDoc.evaluate(
-            "//nfe:det/nfe:prod",
-            xmlDoc,
-            nsResolver,
-            XPathResult.FIRST_ORDERED_NODE_TYPE,
-            null,
-          ).singleNodeValue;
-          const total = xmlDoc.evaluate(
-            "//nfe:total/nfe:ICMSTot/nfe:vNF",
-            xmlDoc,
-            nsResolver,
-            XPathResult.FIRST_ORDERED_NODE_TYPE,
-            null,
-          ).singleNodeValue;
+          try {
+            // Extrair emitente
+            const emitente = xmlDoc.evaluate(
+              "//nfe:emit",
+              xmlDoc,
+              nsResolver,
+              XPathResult.FIRST_ORDERED_NODE_TYPE,
+              null,
+            ).singleNodeValue;
 
-          const dataEmissao = xmlDoc.evaluate(
-            "//nfe:ide/nfe:dhEmi",
-            xmlDoc,
-            nsResolver,
-            XPathResult.FIRST_ORDERED_NODE_TYPE,
-            null,
-          ).singleNodeValue;
-          const email = xmlDoc.evaluate(
-            "//nfe:obsCont/nfe:xTexto",
-            xmlDoc,
-            nsResolver,
-            XPathResult.FIRST_ORDERED_NODE_TYPE,
-            null,
-          ).singleNodeValue;
+            // Extrair destinatário
+            const destinatario = xmlDoc.evaluate(
+              "//nfe:dest",
+              xmlDoc,
+              nsResolver,
+              XPathResult.FIRST_ORDERED_NODE_TYPE,
+              null,
+            ).singleNodeValue;
 
-          return {
-            emitente: {
-              nome: emitente.querySelector("xNome").textContent.toUpperCase(),
-              cnpj: emitente.querySelector("CNPJ").textContent,
-              endereco: {
-                logradouro: emitente
-                  .querySelector("enderEmit > xLgr")
-                  .textContent.toUpperCase(),
-                numero: emitente.querySelector("enderEmit > nro").textContent,
-                bairro: emitente
-                  .querySelector("enderEmit > xBairro")
-                  .textContent.toUpperCase(),
-                cidade: emitente
-                  .querySelector("enderEmit > xMun")
-                  .textContent.toUpperCase(),
-                uf: emitente.querySelector("enderEmit > UF").textContent,
-                cep: emitente.querySelector("enderEmit > CEP").textContent,
+            // Extrair produto/detalhes
+            const produtoNode = xmlDoc.evaluate(
+              "//nfe:det/nfe:prod",
+              xmlDoc,
+              nsResolver,
+              XPathResult.FIRST_ORDERED_NODE_TYPE,
+              null,
+            ).singleNodeValue;
+
+            // Extrair valor do produto
+            let valorProduto = 0;
+            if (produtoNode) {
+              const vProdElement = produtoNode.querySelector("vProd");
+              if (vProdElement) {
+                valorProduto =
+                  parseFloat(vProdElement.textContent.replace(",", ".")) || 0;
+                console.log(
+                  "Valor do produto encontrado (vProd):",
+                  vProdElement.textContent,
+                  "->",
+                  valorProduto,
+                );
+              }
+            }
+
+            // Extrair valor total
+            let valorTotal = 0;
+            const totalNode = xmlDoc.evaluate(
+              "//nfe:total/nfe:ICMSTot/nfe:vNF",
+              xmlDoc,
+              nsResolver,
+              XPathResult.FIRST_ORDERED_NODE_TYPE,
+              null,
+            ).singleNodeValue;
+            if (totalNode) {
+              valorTotal =
+                parseFloat(totalNode.textContent.replace(",", ".")) || 0;
+              console.log(
+                "Valor total encontrado (vNF):",
+                totalNode.textContent,
+                "->",
+                valorTotal,
+              );
+            }
+
+            // Extrair data
+            const dataEmissaoNode = xmlDoc.evaluate(
+              "//nfe:ide/nfe:dhEmi",
+              xmlDoc,
+              nsResolver,
+              XPathResult.FIRST_ORDERED_NODE_TYPE,
+              null,
+            ).singleNodeValue;
+            let dataEmissao = "";
+            if (dataEmissaoNode) {
+              dataEmissao = dataEmissaoNode.textContent.substring(0, 10);
+            }
+
+            // Extrair email
+            const emailNode = xmlDoc.evaluate(
+              "//nfe:obsCont/nfe:xTexto",
+              xmlDoc,
+              nsResolver,
+              XPathResult.FIRST_ORDERED_NODE_TYPE,
+              null,
+            ).singleNodeValue;
+
+            // Usar o valor mais confiável (produto primeiro, depois total)
+            const valorFinal = valorProduto > 0 ? valorProduto : valorTotal;
+            console.log("Valor final a ser usado:", valorFinal);
+
+            const dados = {
+              emitente: {
+                nome: emitente.querySelector("xNome").textContent.toUpperCase(),
+                cnpj: emitente.querySelector("CNPJ").textContent,
+                endereco: {
+                  logradouro: emitente
+                    .querySelector("enderEmit > xLgr")
+                    .textContent.toUpperCase(),
+                  numero: emitente.querySelector("enderEmit > nro").textContent,
+                  bairro: emitente
+                    .querySelector("enderEmit > xBairro")
+                    .textContent.toUpperCase(),
+                  cidade: emitente
+                    .querySelector("enderEmit > xMun")
+                    .textContent.toUpperCase(),
+                  uf: emitente.querySelector("enderEmit > UF").textContent,
+                  cep: emitente.querySelector("enderEmit > CEP").textContent,
+                },
               },
-            },
-            comprador: {
-              nome: destinatario
-                .querySelector("xNome")
-                .textContent.toUpperCase(),
-              cpf: destinatario.querySelector("CPF").textContent,
-              endereco: {
-                logradouro: destinatario
-                  .querySelector("enderDest > xLgr")
+              comprador: {
+                nome: destinatario
+                  .querySelector("xNome")
                   .textContent.toUpperCase(),
-                numero:
-                  destinatario.querySelector("enderDest > nro").textContent,
-                bairro: destinatario
-                  .querySelector("enderDest > xBairro")
-                  .textContent.toUpperCase(),
-                cidade: destinatario
-                  .querySelector("enderDest > xMun")
-                  .textContent.toUpperCase(),
-                uf: destinatario.querySelector("enderDest > UF").textContent,
-                cep: destinatario.querySelector("enderDest > CEP").textContent,
+                cpf: destinatario.querySelector("CPF").textContent,
+                endereco: {
+                  logradouro: destinatario
+                    .querySelector("enderDest > xLgr")
+                    .textContent.toUpperCase(),
+                  numero:
+                    destinatario.querySelector("enderDest > nro").textContent,
+                  bairro: destinatario
+                    .querySelector("enderDest > xBairro")
+                    .textContent.toUpperCase(),
+                  cidade: destinatario
+                    .querySelector("enderDest > xMun")
+                    .textContent.toUpperCase(),
+                  uf: destinatario.querySelector("enderDest > UF").textContent,
+                  cep: destinatario.querySelector("enderDest > CEP")
+                    .textContent,
+                },
+                telefone:
+                  destinatario.querySelector("enderDest > fone").textContent,
+                email: emailNode ? emailNode.textContent.toUpperCase() : "",
               },
-              telefone:
-                destinatario.querySelector("enderDest > fone").textContent,
-              email: email ? email.textContent.toUpperCase() : "",
-            },
-            produto: {
-              descricao: produto
-                .querySelector("xProd")
-                .textContent.toUpperCase(),
-              valor: parseFloat(produto.querySelector("vProd").textContent),
-            },
-            total: parseFloat(total.textContent),
-            formaPagamento: "À VISTA".toUpperCase(),
-            dataEmissao: dataEmissao.textContent.substring(0, 10),
-          };
+              produto: {
+                descricao: produtoNode
+                  .querySelector("xProd")
+                  .textContent.toUpperCase(),
+                valor: valorFinal,
+              },
+              total: valorTotal,
+              formaPagamento: "À VISTA".toUpperCase(),
+              dataEmissao: dataEmissao,
+            };
+
+            console.log("Dados extraídos completos:", dados);
+            return dados;
+          } catch (error) {
+            console.error("Erro na extração XML:", error);
+            throw error;
+          }
         }
 
         function extractVeiculoData(xmlDoc) {
