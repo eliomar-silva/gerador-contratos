@@ -20,8 +20,7 @@ CORS(app, resources={
     r"/.*": {
         "origins": [
             "http://127.0.0.1:5500",
-            "https://eliomar-silva.github.io",
-            "https://eliomar-silva.github.io/gerador-contratos/frontend/"
+            "https://eliomar-silva.github.io",           
         ],
         "methods": ["GET", "POST", "OPTIONS"],
         "allow_headers": ["Content-Type"],
@@ -67,7 +66,7 @@ def wake_up():
         "service": "Gerador de Contratos"
     }), 200
 
-@app.after_request
+
 def after_request(response):
     """Add CORS headers to every response"""
     allowed_origins = [
@@ -85,7 +84,6 @@ def after_request(response):
 
 
 
-@app.route('/gerar-contrato', methods=['OPTIONS'])
 def handle_options():
     """Handle CORS preflight requests"""
     return jsonify({"status": "ok"}), 200
