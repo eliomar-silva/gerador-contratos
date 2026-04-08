@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
 # 🔥 CORS SIMPLES E FUNCIONAL
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH = os.path.join(BASE_DIR, 'base-contrato.docx')
@@ -35,9 +35,18 @@ def format_currency(value, format_for='calculation'):
     except:
         return 0.0 if format_for == 'calculation' else "0,00"
 
-
+@app.after_request
+def apply_cors(response):
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
+    response.headers["Access-Control-Allow-Methods"] = "GET,POST,PUT,DELETE,OPTIONS"
+    return response
+    
 # ================= ROTAS =================
-
+@app.route('/', methods=['GET', 'HEAD'])
+def home():
+    return jsonify({"status": "ok"})
+    
 @app.route('/wake-up')
 def wake_up():
     return jsonify({
