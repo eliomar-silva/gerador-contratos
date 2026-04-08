@@ -16,18 +16,7 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
 # Enhanced CORS configuration
-CORS(app, resources={
-    r"/.*": {
-        "origins": [
-            "http://127.0.0.1:5500",
-            "https://eliomar-silva.github.io",           
-        ],
-        "methods": ["GET", "POST", "OPTIONS"],
-        "allow_headers": ["Content-Type"],
-        "supports_credentials": True,
-        "max_age": 86400
-    }
-})
+CORS(app)
 
 # Path configuration
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
