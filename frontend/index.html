@@ -1138,8 +1138,7 @@
           "https://gerador-contratos-backend-ybag.onrender.com/wake-up";
 
         try {
-          let response = await fetch(wakeUpUrl, {
-            method: "HEAD",
+          let response = await fetch(wakeUpUrl, {           
             mode: "cors",
             cache: "no-cache",
           });
