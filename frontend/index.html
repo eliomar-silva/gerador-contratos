@@ -1043,12 +1043,24 @@
                 <select id="ipva">
                   <option value="IPVA PAGO">IPVA PAGO</option>
                   <option value="DOCUMENTAÇÃO PAGA">Documentação Paga</option>
-                  <option value="1º PARCELA DE IPVA PAGO">1º PARCELA DE IPVA PAGO</option>           
-                  <option value="1º E 2º PARCELA DE IPVA PAGOS">1º E 2º PARCELA DE IPVA PAGOS</option>    
-                  <option value="1º, 2º E 3º PARCELA DE IPVA PAGOS">1º, 2º E 3º PARCELA DE IPVA PAGOS</option>    
-                  <option value="1º, 2º, 3º E 4º PARCELA DE IPVA PAGOS">1º, 2º, 3º E 4º PARCELA DE IPVA PAGOS</option>    
-                  <option value="1º, 2º, 3º, 4º E 5º PARCELA DE IPVA PAGOS">1º, 2º, 3º, 4º E 5º PARCELA DE IPVA PAGOS</option>    
-                   <option value="1º, 2º, 3º, 4º, 5º E 6º PARCELA DE IPVA PAGOS">1º, 2º, 3º, 4º, 5º E 6º PARCELA DE IPVA PAGOS</option>    
+                  <option value="1º PARCELA DE IPVA PAGO">
+                    1º PARCELA DE IPVA PAGO
+                  </option>
+                  <option value="1º E 2º PARCELA DE IPVA PAGOS">
+                    1º E 2º PARCELA DE IPVA PAGOS
+                  </option>
+                  <option value="1º, 2º E 3º PARCELA DE IPVA PAGOS">
+                    1º, 2º E 3º PARCELA DE IPVA PAGOS
+                  </option>
+                  <option value="1º, 2º, 3º E 4º PARCELA DE IPVA PAGOS">
+                    1º, 2º, 3º E 4º PARCELA DE IPVA PAGOS
+                  </option>
+                  <option value="1º, 2º, 3º, 4º E 5º PARCELA DE IPVA PAGOS">
+                    1º, 2º, 3º, 4º E 5º PARCELA DE IPVA PAGOS
+                  </option>
+                  <option value="1º, 2º, 3º, 4º, 5º E 6º PARCELA DE IPVA PAGOS">
+                    1º, 2º, 3º, 4º, 5º E 6º PARCELA DE IPVA PAGOS
+                  </option>
                   <option value="DOCUMENTAÇÃO 2025 PAGA">
                     DOCUMENTAÇÃO 2025 PAGA
                   </option>
@@ -1144,7 +1156,7 @@
           "https://gerador-contratos-backend-ybag.onrender.com/wake-up";
 
         try {
-          let response = await fetch(wakeUpUrl, {           
+          let response = await fetch(wakeUpUrl, {
             mode: "cors",
             cache: "no-cache",
           });
@@ -2216,7 +2228,7 @@
             if (dataEmissaoNode) {
               dataEmissao = dataEmissaoNode.textContent.substring(0, 10);
             }
-            
+
             // Extrair email
             const emailNode = xmlDoc.evaluate(
               "//nfe:obsCont/nfe:xTexto",
@@ -2225,7 +2237,7 @@
               XPathResult.FIRST_ORDERED_NODE_TYPE,
               null,
             ).singleNodeValue;
-            const foneNode = "";
+           
             // Usar o valor mais confiável (produto primeiro, depois total)
             const valorFinal = valorProduto > 0 ? valorProduto : valorTotal;
             console.log("Valor final a ser usado:", valorFinal);
@@ -2253,7 +2265,9 @@
                 nome: destinatario
                   .querySelector("xNome")
                   .textContent.toUpperCase(),
-                cpf: destinatario.querySelector("CPF") ? destinatario.querySelector("CPF").textContent : "",
+                cpf: destinatario.querySelector("CPF")
+                  ? destinatario.querySelector("CPF").textContent
+                  : "",
                 endereco: {
                   logradouro: destinatario
                     .querySelector("enderDest > xLgr")
@@ -2270,7 +2284,9 @@
                   cep: destinatario.querySelector("enderDest > CEP")
                     .textContent,
                 },
-                telefone: destinatario.querySelector("enderDest > fone") ? destinatario.querySelector("enderDest > fone").textContent : foneNode,
+                telefone: destinatario.querySelector("enderDest > fone")
+                  ? destinatario.querySelector("enderDest > fone").textContent
+                  : "",
                 email: emailNode ? emailNode.textContent.toUpperCase() : "",
               },
               produto: {
@@ -2413,8 +2429,9 @@
                 uf: destinatario.querySelector("enderDest > UF").textContent,
                 cep: destinatario.querySelector("enderDest > CEP").textContent,
               },
-              telefone:
-                destinatario.querySelector("enderDest > fone").textContent,
+              telefone: destinatario.querySelector("enderDest > fone")
+                ? destinatario.querySelector("enderDest > fone").textContent
+                : "",
               email: email ? email.textContent.toUpperCase() : "",
             },
             produto: {
@@ -2552,10 +2569,10 @@
                     <strong>${campo.label}</strong>
                     <button class="copy-btn" data-value="${valor.replace(/"/g, "&quot;")}">
                         <i class="fas fa-copy"></i>
-                    </button>    
+                    </button>
                 </span>
                 <div class="value-container">
-                    <span id="value-${campo.chave}">${valor}</span>                   
+                    <span id="value-${campo.chave}">${valor}</span>
                 </div>
             </div>
         `;
@@ -2716,24 +2733,24 @@
         function generateContractHTML(data) {
           return `
             <h2>CONTRATO DE COMPRA E VENDA</h2>
-        
+
         <div class="contract-section">
             <h3>VENDEDOR</h3>
             <div class="contract-field">
-                <strong>${data.vendedor.toUpperCase()}</strong>, pessoa jurídica de direito privado, 
+                <strong>${data.vendedor.toUpperCase()}</strong>, pessoa jurídica de direito privado,
                 inscrita no CNPJ ${data.cnpjVendedor}, com sede em ${data.enderecoVendedor.toUpperCase()}.
             </div>
         </div>
-        
+
         <div class="contract-section">
             <h3>COMPRADOR</h3>
             <div class="contract-field">
-                <strong>${data.comprador.toUpperCase()}</strong>, inscrito no CPF sob o nº. ${data.cpfComprador}, 
-                com endereço na ${data.enderecoComprador.toUpperCase()}, ${data.cidadeComprador.toUpperCase()}/${data.ufComprador}, 
+                <strong>${data.comprador.toUpperCase()}</strong>, inscrito no CPF sob o nº. ${data.cpfComprador},
+                com endereço na ${data.enderecoComprador.toUpperCase()}, ${data.cidadeComprador.toUpperCase()}/${data.ufComprador},
                 CEP ${data.cepComprador}, TELEFONE ${data.telefoneComprador} e E-MAIL ${data.emailComprador.toUpperCase()}.
             </div>
         </div>
-            
+
             <div class="contract-section">
                 <h3>CLÁUSULA PRIMEIRA - DO OBJETO</h3>
                 <div class="contract-field"><strong>Marca:</strong> ${data.marca.toUpperCase()}</div>
@@ -2748,7 +2765,7 @@
                 <div class="contract-field"><strong>Renavam:</strong> ${data.renavam.toUpperCase()}</div>
                 <div class="contract-field"><strong>Chassi:</strong> ${data.chassi.toUpperCase()}</div>
             </div>
-            
+
             <div class="contract-section">
                 <h3>CLÁUSULA SEGUNDA - DO PREÇO E FORMA DE PAGAMENTO</h3>
                 <div class="contract-field"><strong>Valor:</strong> R$ ${data.valor}</div>
@@ -2757,48 +2774,48 @@
                 <div class="contract-field">
                     <strong>Forma de pagamento:</strong> ${data.formaPagamento.toUpperCase()}
                 </div>
-                
+
                 <h4>DOCUMENTAÇÃO</h4>
                 <div class="contract-field">${data.ipva.toUpperCase()}</div>
                 <div class="contract-field">${data.multas.toUpperCase()}</div>
             </div>
-            
+
             <div class="contract-section">
                 <p><strong>CLÁUSULA TERCEIRA - DA VISTORIA E AVALIAÇÃO DO VEÍCULO</strong></p>
                 <p>O COMPRADOR DECLARA TER VISTORIADO E AVALIADO O ESTADO EM QUE SE ENCONTRA O VEÍCULO ORA NEGOCIADO, ESTANDO O MESMO EM PERFEITAS CONDIÇÕES DE FUNCIONAMENTO E ESTADO DE CONSERVAÇÃO.</p>
             </div>
-            
+
             <div class="contract-section">
                 <p><strong>CLÁUSULA QUARTA - DA RESPONSABILIDADE CIVIL E CRIMINAL</strong></p>
                 <p>A PARTIR DESTA DATA ${data.dataEmissao}, O COMPRADOR SE RESPONSABILIZA POR QUAISQUER DANOS, SEJA NO ÂMBITO CIVIL OU CRIMINAL, DECORRENTE DA UTILIZAÇÃO DO VEÍCULO ORA ADQUIRIDO...</p>
             </div>
-            
+
             <div class="contract-section">
                 <p>E, PARA QUE PRODUZA SEUS LEGAIS EFEITOS, FIRMO O PRESENTE TERMO, NA PRESENÇA DE 2 (DUAS) TESTEMUNHAS.</p>
                 <p>DIA ${data.dia} DE ${data.mes} DE ${data.ano}.</p>
             </div>
-            
+
             <div style="display: flex; justify-content: space-between; margin-top: 40px;">
                 <div style="width: 45%;">
                     <p>__________________________</p>
                     <p>${data.comprador}</p>
                     <p>${data.cpfComprador}</p>
                 </div>
-                
+
                 <div style="width: 45%;">
                     <p>__________________________</p>
                     <p>${data.vendedor}</p>
                     <p>${data.cnpjVendedor}</p>
                 </div>
             </div>
-            
+
             <div style="display: flex; justify-content: space-between; margin-top: 40px;">
                 <div style="width: 45%;">
                     <p>__________________________</p>
                     <p>TESTEMUNHA 1</p>
                     <p>RG/CPF</p>
                 </div>
-                
+
                 <div style="width: 45%;">
                     <p>__________________________</p>
                     <p>TESTEMUNHA 2</p>
@@ -2824,4 +2841,3 @@
     </script>
   </body>
 </html>
-
