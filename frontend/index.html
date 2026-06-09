@@ -2253,7 +2253,7 @@
                 nome: destinatario
                   .querySelector("xNome")
                   .textContent.toUpperCase(),
-                cpf: destinatario.querySelector("CPF").textContent,
+                cpf: destinatario.querySelector("CPF") ? destinatario.querySelector("CPF").textContent : "",
                 endereco: {
                   logradouro: destinatario
                     .querySelector("enderDest > xLgr")
@@ -2270,7 +2270,7 @@
                   cep: destinatario.querySelector("enderDest > CEP")
                     .textContent,
                 },
-                telefone: foneNode ? destinatario.querySelector("enderDest > fone").textContent,
+                telefone: destinatario.querySelector("enderDest > fone") ? destinatario.querySelector("enderDest > fone").textContent : foneNode,
                 email: emailNode ? emailNode.textContent.toUpperCase() : "",
               },
               produto: {
