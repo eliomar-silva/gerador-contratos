@@ -2216,7 +2216,7 @@
             if (dataEmissaoNode) {
               dataEmissao = dataEmissaoNode.textContent.substring(0, 10);
             }
-
+            
             // Extrair email
             const emailNode = xmlDoc.evaluate(
               "//nfe:obsCont/nfe:xTexto",
@@ -2225,7 +2225,7 @@
               XPathResult.FIRST_ORDERED_NODE_TYPE,
               null,
             ).singleNodeValue;
-
+            const foneNode = "";
             // Usar o valor mais confiável (produto primeiro, depois total)
             const valorFinal = valorProduto > 0 ? valorProduto : valorTotal;
             console.log("Valor final a ser usado:", valorFinal);
@@ -2270,8 +2270,7 @@
                   cep: destinatario.querySelector("enderDest > CEP")
                     .textContent,
                 },
-                telefone:
-                  destinatario.querySelector("enderDest > fone").textContent,
+                telefone: foneNode ? destinatario.querySelector("enderDest > fone").textContent,
                 email: emailNode ? emailNode.textContent.toUpperCase() : "",
               },
               produto: {
