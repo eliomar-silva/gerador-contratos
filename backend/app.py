@@ -117,8 +117,11 @@ def generate_contract():
             'MARCA': data['marca'],
             'MODELO': data['modelo'],
             'COR': data.get('cor', ''),
-            'COMBUSTÍVEL': data.get('combustivel', ''),
-            'DIA_MES_ANO': today.strftime('%d/%m/%Y'),
+            'COMBUSTÍVEL': data.get('combustivel', ''),         
+            'DIA_MES_ANO': data.get('dataEmissao', ''),
+            'DIA': data.get('dia', ''),
+            'MES': data.get('mes', ''),
+            'ANO': data.get('ano', ''),
             'ANO_FAB': data.get('anoFab', ''),
             'ANO_MOD': data.get('anoMod', ''),
             'QUILOMETRAGEM': data.get('quilometragem', '0'),
@@ -131,9 +134,7 @@ def generate_contract():
             'FORMA_PAGAMENTO': data['formaPagamento'],
             'IPVA': data.get('ipva', 'PAGO'),
             'MULTAS': data.get('multas', 'NÃO'),
-            'DIA': today.strftime('%d'),
-            'MES': today.strftime('%m'),
-            'ANO': today.strftime('%Y'),
+            
             'NOME_2': data['comprador'],
             'CPF_CNPJ_2': data['cpfComprador']
         }
