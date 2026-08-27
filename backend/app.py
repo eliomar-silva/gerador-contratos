@@ -134,7 +134,7 @@ def generate_contract():
             'FORMA_PAGAMENTO': data['formaPagamento'],
             'IPVA': data.get('ipva', 'PAGO'),
             'MULTAS': data.get('multas', 'NÃO'),
-            
+            'DIA_MES_ANO_2': data.get('dataEmissao', ''),
             'NOME_2': data['comprador'],
             'CPF_CNPJ_2': data['cpfComprador']
         }
